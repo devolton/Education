@@ -1,0 +1,64 @@
+# Убираем папки node_modules для обоих проектов (React и NestJS)
+node_modules/
+
+# Для React
+build/
+dist/
+*.log
+*.env
+*.env.local
+*.env.development
+*.env.production
+*.env.test
+
+# Лог-файлы и временные файлы
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Конфигурации редакторов кода
+.vscode/
+.idea/
+
+# Файлы для операционной системы
+.DS_Store
+Thumbs.db
+
+# Для NestJS
+*.tsbuildinfo
+*.map
+nestjs-debug.log
+
+# Папки для хранения временных файлов
+coverage/
+tmp/
+*.bak
+
+# Папки для тестов и отчётов
+test-coverage/
+reports/
+
+# Секретные ключи и файлы конфигурации
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# Файлы пакетов
+package-lock.json
+yarn.lock
+
+# Папки для файлов сборки
+dist/
+
+# Для Docker
+.docker/
+
+# Для GitHub Actions (если используется CI/CD)
+.github/
+
+# Для WebStorm и других IDE
+.idea/
+
+# Кэш файлов
+.cache/

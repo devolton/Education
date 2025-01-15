@@ -1,0 +1,31 @@
+const QUERIES = {
+  USERS_LIST: 'users-list',
+  USERS:'users',
+  ONE_USER:'user',
+  OPTIONS:'options',
+  ONE_OPTION:'option',
+  POST_TAGS_LIST:'post-tags-list',
+  ONE_TAG:'tag',
+  POST_CATEGORIES_LIST:'post-categories-list',
+  ONE_CATEGORY:'category',
+  ROLES_LIST:'roles-list',
+  ONE_ROLE:'role',
+  POSTS_LIST:'posts-list',
+  ONE_POST:'post',
+  NAVIGATIONS_LIST:'navigations-list',
+  ONE_NAVIGATION:'navigation',
+  MESSAGES_LIST:'messages-list',
+  ONE_MESSAGE:'message',
+  EVENTS_LIST:'events-list',
+  ONE_EVENT:'event',
+  COURSES_LIST:'courses-list',
+  ONE_COURSE:'course',
+  REVIEWS_LIST:'reviews-list',
+  ONE_REVIEW:'review',
+  AUTHORS_LIST:'authors-list',
+  ONE_AUTHOR:'author',
+  MEDIA_ASSETS_LIST:'media-assets-list',
+  ONE_MEDIA_ASSET:'media-asset'
+}
+
+export {QUERIES}
