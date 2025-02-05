@@ -58,15 +58,15 @@ const ChatPage = () => {
                         </>
                     }
                 />
-                <Route
-                    path='group-chat'
-                    element={
-                        <>
-                            <PageTitle breadcrumbs={chatBreadCrumbs}>Group chat</PageTitle>
-                            <Group/>
-                        </>
-                    }
-                />
+                {/*<Route*/}
+                {/*    path='group-chat'*/}
+                {/*    element={*/}
+                {/*        <>*/}
+                {/*            <PageTitle breadcrumbs={chatBreadCrumbs}>Group chat</PageTitle>*/}
+                {/*            <Group/>*/}
+                {/*        </>*/}
+                {/*    }*/}
+                {/*/>*/}
                 {/*<Route*/}
                 {/*    path='drawer-chat'*/}
                 {/*    element={*/}

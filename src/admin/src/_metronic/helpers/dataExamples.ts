@@ -3,7 +3,6 @@ export interface MessageModel {
   type: 'in' | 'out'
   text: string
   time: string
-  template?: boolean
 }
 
 const defaultMessages: Array<MessageModel> = [
@@ -50,14 +49,12 @@ const defaultMessages: Array<MessageModel> = [
     time: '5 Hours',
   },
   {
-    template: true,
     user: 2,
     type: 'out',
     text: '',
     time: 'Just now',
   },
   {
-    template: true,
     user: 4,
     type: 'in',
     text: 'Right before vacation season we have the next Big Deal for you.',

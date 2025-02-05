@@ -93,7 +93,7 @@ const SidebarMenuMain = () => {
                 icon='message-text-2'
             >
                 <SidebarMenuItem to='/apps/chat/private-chat' title='Private Chat' hasBullet={true}/>
-                <SidebarMenuItem to='/apps/chat/group-chat' title='Group Chart' hasBullet={true}/>
+                {/*<SidebarMenuItem to='/apps/chat/group-chat' title='Group Chart' hasBullet={true}/>*/}
                 {/*<SidebarMenuItem to='/apps/chat/drawer-chat' title='Drawer Chart' hasBullet={true}/>*/}
             </SidebarMenuItemWithSub>
             <SidebarMenuItemWithSub

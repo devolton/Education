@@ -52,6 +52,7 @@ import * as process from "process";
 import {Token} from "./token/model/token.model";
 import { PaginationModule } from './pagination/pagination.module';
 import { WebsocketModule } from './websocket/websocket.module';
+import {ChatMessage} from "./websocket/model/chat.message.model";
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -94,7 +95,8 @@ import { WebsocketModule } from './websocket/websocket.module';
             Comment,
             CommentToPost,
             CommentToCourse,
-            Token],
+            Token,
+            ChatMessage],
             autoLoadModels: true,
             synchronize: true
         }),
