@@ -6,7 +6,7 @@ import {
     WebSocketGateway,
     WebSocketServer
 } from '@nestjs/websockets';
-import {WebsocketService} from './websocket.service';
+import {ChatService} from './chat.service';
 import {Server, Socket} from "socket.io";
 import {ChatMessageDto} from "./dto/chat.message.dto";
 import {ChatClientDto} from "./dto/chat.client.dto";
@@ -15,7 +15,7 @@ import {ChatClientDto} from "./dto/chat.client.dto";
     cors: true
 })
 export class WebsocketGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-    constructor(private readonly websocketService: WebsocketService) {
+    constructor(private readonly chatService: ChatService) {
     }
 
     private clients: Array<ChatClientDto> = [];

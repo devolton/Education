@@ -3,7 +3,6 @@ import {InjectModel} from "@nestjs/sequelize";
 import {Role} from "./model/role.model";
 import {CreateRoleDto} from "./dto/create.role.dto";
 import {UpdateRoleDto} from "./dto/update.role.dto";
-import {UserService} from "../user/service/user.service";
 import {Sequelize} from "sequelize-typescript";
 import {UserToRole} from "../user/model/user.to.role.model";
 import {PaginationService} from "../pagination/pagination.service";

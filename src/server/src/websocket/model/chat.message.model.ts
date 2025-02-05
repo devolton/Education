@@ -1,5 +1,6 @@
 import {BelongsTo, Column, DataType, ForeignKey, Model, Table} from "sequelize-typescript";
 import {User} from "../../user/model/user.model";
+
 interface CreateChatMessageAttr{
     message:string,
     senderId:number,
