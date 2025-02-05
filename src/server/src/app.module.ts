@@ -51,6 +51,7 @@ import { TokenModule } from './token/token.module';
 import * as process from "process";
 import {Token} from "./token/model/token.model";
 import { PaginationModule } from './pagination/pagination.module';
+import { WebsocketModule } from './websocket/websocket.module';
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -116,7 +117,8 @@ import { PaginationModule } from './pagination/pagination.module';
         AuthModule,
         CommentModule,
         TokenModule,
-        PaginationModule],
+        PaginationModule,
+        WebsocketModule],
     controllers: [],
     providers: [],
 })

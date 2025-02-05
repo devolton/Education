@@ -170,6 +170,8 @@ export class EventService {
                 throw new NotFoundException("Course",eventId);
             await this.eventVenueRepository.destroy({where: {id: event.eventVenueId}});
             await this.eventDetailRepository.destroy({where: {id: event.eventDetailId}});
+            await this.removeThumbnail(event.id);
+            await this.removePoster(event.id);
             await event.destroy();
             await transaction.commit();
         } catch (e) {

@@ -1,5 +1,4 @@
 import axios from "axios";
-
 import {CreateBlogPostDto, CreateBlogPostInfoDto, UpdateBlogPostDto, UpdateBlogPostInfoDto} from "./_post.model.ts";
 import {Config} from "../../../../../../env.config.ts";
 import {ID, isNotEmpty} from "../../../../../../_metronic/helpers";
