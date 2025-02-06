@@ -1,21 +1,27 @@
-import React from 'react';
-import {toAbsoluteUrl} from "../../../../../../_metronic/helpers";
+import React, {FC} from 'react';
+import {toDevoltonAbsoluteUrl} from "../../../../../../_metronic/helpers";
+import {CustomUser} from "../../../user-management/custom-users-list/core/custom.user.model.ts";
+import {useSocket} from "../../../chat/core/ChatMessageSocketProvider.tsx";
 
-const OneUserChat = () => {
+type Props = {
+    user:CustomUser,
+    onClickHandler:(user:CustomUser) => void,
+}
+const OneUserChat:FC<Props> = ({user,onClickHandler}) => {
     return (
         <div>
-            <div className='d-flex flex-stack py-4'>
+            <div onClick={()=>{onClickHandler(user)}} className='cursor-pointer d-flex flex-stack py-4'>
                 <div className='d-flex align-items-center'>
                     <div className='symbol symbol-45px symbol-circle'>
-                        <img alt='Pic' src={toAbsoluteUrl('/media/avatars/300-1.jpg')} />
+                        <img alt='Pic' src={toDevoltonAbsoluteUrl(user.avatarPath)} />
                         <div className='symbol-badge bg-success start-100 top-100 border-4 h-15px w-15px ms-n2 mt-n2'></div>
                     </div>
 
                     <div className='ms-5'>
                         <a href='#' className='fs-5 fw-bolder text-gray-900 text-hover-primary mb-2'>
-                            Max Smith
+                            {`${user.surname} ${user.name}`}
                         </a>
-                        <div className='fw-bold text-gray-500'>max@kt.com</div>
+                        <div className='fw-bold text-gray-500'>{user.login}</div>
                     </div>
                 </div>
 

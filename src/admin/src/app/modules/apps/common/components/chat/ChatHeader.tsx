@@ -1,6 +1,11 @@
-import React from 'react';
+import React, {FC} from 'react';
+import {CustomUser} from "../../../user-management/custom-users-list/core/custom.user.model.ts";
+import {useSocket} from "../../../chat/core/ChatMessageSocketProvider.tsx";
+type Props = {
+    receiver:CustomUser
+}
+const ChatHeader:FC<Props> = ({receiver}) => {
 
-const ChatHeader = () => {
 
     return (
         <div className='card-header' id='kt_chat_messenger_header'>
@@ -11,7 +16,7 @@ const ChatHeader = () => {
                         href='#'
                         className='fs-4 fw-bolder text-gray-900 text-hover-primary me-1 mb-2 lh-1'
                     >
-                        Brian Cox
+                        {`${receiver.surname} ${receiver.name}`}
                     </a>
 
                     <div className='mb-0 lh-1'>

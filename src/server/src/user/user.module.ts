@@ -13,6 +13,7 @@ import {TokenModule} from "../token/token.module";
 import {JwtModule, JwtService} from "@nestjs/jwt";
 import {FilesModule} from "../files/files.module";
 import {PaginationModule} from "../pagination/pagination.module";
+import {WebsocketModule} from "../websocket/websocket.module";
 
 @Module({
     controllers: [UserController],
@@ -21,6 +22,7 @@ import {PaginationModule} from "../pagination/pagination.module";
         SequelizeModule.forFeature([User, Review, UserToRole,Role]),
         forwardRef(() => AuthModule),
         forwardRef(() => RoleModule),
+        forwardRef(() => WebsocketModule),
         JwtModule,
         ReviewModule,
         FilesModule,

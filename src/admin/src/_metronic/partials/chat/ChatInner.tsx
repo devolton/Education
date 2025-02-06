@@ -1,38 +1,38 @@
-import {FC, useState} from 'react'
+import {FC, useEffect, useState} from 'react'
 import clsx from 'clsx'
-import {defaultMessages, messageFromClient, MessageModel,} from '../../helpers'
+import {formatTimeAgo, KTIcon,} from '../../helpers'
 
 import ChatFooter from "../../../app/modules/apps/common/components/chat/ChatFooter.tsx";
 import MessageBlock from "../../../app/modules/apps/common/components/chat/MessageBlock.tsx";
+import {getUserMessages} from "../../../app/modules/apps/chat/core/_chat.request.ts";
+import {CustomUser} from "../../../app/modules/apps/user-management/custom-users-list/core/custom.user.model.ts";
+import {useAuth} from "../../../app/modules/auth";
+import {ChatMessage, ChatMessageModel} from "../../../app/modules/apps/chat/core/_chat.model.ts";
+import {useSocket} from "../../../app/modules/apps/chat/core/ChatMessageSocketProvider.tsx";
 
 type Props = {
     isDrawer?: boolean
+    receiver: CustomUser
 }
 
-const bufferMessages = defaultMessages
 
-const ChatInner: FC<Props> = ({isDrawer = false}) => {
-    const [chatUpdateFlag, toggleChatUpdateFlat] = useState<boolean>(false)
+const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
+    const {socket} = useSocket();
+    const {currentCustomUser} = useAuth();
     const [message, setMessage] = useState<string>('')
-    const [messages, setMessages] = useState<MessageModel[]>(bufferMessages)
+    const [messages, setMessages] = useState<Array<ChatMessageModel>>([])
+
 
     const sendMessage = () => {
-        const newMessage: MessageModel = {
-            user: 2,
-            type: 'out',
-            text: message,
-            time: 'Just now',
+        const newMessage:ChatMessage={
+            id:undefined,
+            senderId:currentCustomUser.id,
+            receiverId:receiver.id,
+            message:message
         }
-
-        bufferMessages.push(newMessage)
-        setMessages(bufferMessages)
-        toggleChatUpdateFlat(!chatUpdateFlag)
+        socket.emit('message',newMessage);
         setMessage('')
-        setTimeout(() => {
-            bufferMessages.push(messageFromClient)
-            setMessages(() => bufferMessages)
-            toggleChatUpdateFlat((flag) => !flag)
-        }, 1000)
+
     }
 
     const onEnterPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -41,6 +41,45 @@ const ChatInner: FC<Props> = ({isDrawer = false}) => {
             sendMessage()
         }
     }
+    const messageHandler= (message:ChatMessage) => {
+        let chatMes:ChatMessageModel = {
+            sender:message.sender,
+            receiver:message.receiver,
+            text:message.message,
+            type:(currentCustomUser.id!==message.senderId)?"in":"out",
+            time:formatTimeAgo(message.createdAt.toLocaleString())
+        };
+        console.log(chatMes)
+        setMessages((prev) => [...prev, chatMes]);
+    }
+
+
+    useEffect(() => {
+        if(socket){
+            socket.on('message',messageHandler);
+        }
+
+        if (receiver)
+            getUserMessages(receiver.id).then(data=>{
+                console.log(data);
+                let temp:Array<ChatMessageModel>=[];
+                data.forEach(oneMessage=>{
+                    temp.push({
+                        time:formatTimeAgo(oneMessage.createdAt.toLocaleString()),
+                        type:(oneMessage.senderId!==currentCustomUser.id)?"in":'out',
+                        text:oneMessage.message,
+                        receiver:oneMessage.receiver,
+                        sender:oneMessage.sender
+
+                    })
+                })
+                setMessages(temp);
+            })
+        return(()=>{
+            socket.off('message',messageHandler);
+        })
+
+    }, [receiver]);
 
     return (
         <div
@@ -48,7 +87,7 @@ const ChatInner: FC<Props> = ({isDrawer = false}) => {
             id={isDrawer ? 'kt_drawer_chat_messenger_body' : 'kt_chat_messenger_body'}
         >
             <div
-                className={clsx('scroll-y me-n5 pe-5', {'h-300px h-lg-auto': !isDrawer})}
+                className={clsx('scroll-y me-n5 pe-5', {'min-h-300px max-h-300px h-300px h-lg-auto': !isDrawer})}
                 data-kt-element='messages'
                 data-kt-scroll='true'
                 data-kt-scroll-activate='{default: false, lg: true}'
@@ -64,10 +103,14 @@ const ChatInner: FC<Props> = ({isDrawer = false}) => {
                         : '#kt_content, #kt_app_content, #kt_chat_messenger_body'
                 }
                 data-kt-scroll-offset={isDrawer ? '0px' : '5px'}
-            >
-                {messages.map((message, index) => {
-                    return (<MessageBlock key={`message-block-${index}`} message={message} isDrawer={isDrawer}/> )
-                })}
+            >{
+                (messages.length>0)?  messages.map((message, index) => {
+                    return (<MessageBlock key={`message-block-${index}`} message={message} isDrawer={isDrawer}/>)
+                }) :
+                    <div className='d-flex text-center w-100 align-content-center justify-content-center'>
+                        <KTIcon iconName={'message-add'} iconType={'outline'} className='fs-2'/>
+                </div>
+            }
             </div>
             {/*input message block*/}
             <div
@@ -84,7 +127,7 @@ const ChatInner: FC<Props> = ({isDrawer = false}) => {
             onKeyDown={onEnterPress}
         ></textarea>
 
-               <ChatFooter sendMessageHandler={sendMessage}/>
+                <ChatFooter sendMessageHandler={sendMessage}/>
             </div>
         </div>
     )

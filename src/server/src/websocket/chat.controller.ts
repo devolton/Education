@@ -8,7 +8,7 @@ import {ChatMessage} from "./model/chat.message.model";
 import {UpdateChatMessageDto} from "./dto/update.chat.message.dto";
 
 
-@Controller('chat')
+@Controller('chats')
 export class ChatController {
     constructor(private readonly chatService: ChatService) {
     }
@@ -22,7 +22,6 @@ export class ChatController {
                   @Query('offset') offset: number,) {
 
         let senderId = req.body.userId;
-        console.log("SenderId: " + senderId);
         return this.chatService.getMessagesSpecificUserByUserId(senderId, receiverId, limit, offset)
     }
 

@@ -6,8 +6,7 @@ import ChatMessage from "./ChatMessage.tsx";
 import {defaultUserInfos, UserInfoModel} from "../../../../../../_metronic/helpers";
 
 const MessageBlock = ({message,isDrawer}) => {
-    const [userInfos] = useState<UserInfoModel[]>(defaultUserInfos)
-    const userInfo = userInfos[message.user]
+
     const templateAttr = {}
     const contentClass = `${isDrawer ? '' : 'd-flex'} justify-content-${
         message.type === 'in' ? 'start' : 'end'
@@ -26,8 +25,7 @@ const MessageBlock = ({message,isDrawer}) => {
                 {/*sender header block*/}
                 <div className='d-flex align-items-center mb-2'>
                     {message.type === 'in' ? (
-                        <ChatReceiverHeader message={message}
-                                            userInfo={userInfo}/>
+                        <ChatReceiverHeader message={message}/>
                     ) : (
                         <ChatSenderHeader message={message}/>
                     )}

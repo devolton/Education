@@ -22,13 +22,14 @@ export class ChatMessage  extends Model<ChatMessage,CreateChatMessageAttr>{
     @ForeignKey(() => User)
     @Column({type:DataType.INTEGER,allowNull:false})
     senderId:number;
-    @BelongsTo(()=>User)
+    @BelongsTo(()=>User,{foreignKey:'senderId',as:'sender'})
     sender:User;
+
 
     @ForeignKey(()=>User)
     @Column({type:DataType.INTEGER,allowNull:false})
     receiverId:number;
-    @BelongsTo(() => User)
+    @BelongsTo(() => User,{foreignKey:'receiverId',as:'receiver'})
     receiver:User;
     @Column({type:DataType.INTEGER,allowNull:true,defaultValue:null})
     parentMessageId:number;

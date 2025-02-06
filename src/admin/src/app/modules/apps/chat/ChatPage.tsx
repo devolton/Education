@@ -1,11 +1,6 @@
-import {Navigate, Route, Routes, Outlet} from 'react-router-dom'
+import {Navigate, Outlet, Route, Routes} from 'react-router-dom'
 import {PageLink, PageTitle} from '../../../../_metronic/layout/core'
-import {Private} from './components/Private'
-import {Group} from './components/Group'
-import {Drawer} from './components/Drawer'
-import {useEffect} from "react";
-
-import {connect} from "socket.io-client";
+import {PrivateWrapper} from './components/Private'
 import {useAuth} from "../../auth";
 
 const chatBreadCrumbs: Array<PageLink> = [
@@ -25,25 +20,25 @@ const chatBreadCrumbs: Array<PageLink> = [
 
 const ChatPage = () => {
     const {currentCustomUser} = useAuth();
-    const socket = connect("http://localhost:3001",{
-        query:{login:currentCustomUser.login},
-    });
+    // const socket:Socket = connect("http://localhost:3001",{
+    //     query:{login:currentCustomUser.login},
+    // });
 
-    useEffect(() => {
-        socket.emit('message', {
-            senderLogin:"johndoe",
-            receiverLogin:"gamilc",
-            message:"Its my first chat message!"
-        });
-
-        socket.on('message', (data: string) => {
-            console.log(data);
-        });
-        return (() => {
-            socket.disconnect();
-        });
-
-    }, [])
+    // useEffect(() => {
+    //     socket.emit('message', {
+    //         senderLogin:"johndoe",
+    //         receiverLogin:"gamilc",
+    //         message:"Its my first chat message!"
+    //     });
+    //
+    //     socket.on('message', (data: string) => {
+    //         console.log(data);
+    //     });
+    //     return (() => {
+    //         socket.disconnect();
+    //     });
+    //
+    // }, [])
 
 
     return (
@@ -54,7 +49,7 @@ const ChatPage = () => {
                     element={
                         <>
                             <PageTitle breadcrumbs={chatBreadCrumbs}>Private chat</PageTitle>
-                            <Private/>
+                            <PrivateWrapper/>
                         </>
                     }
                 />

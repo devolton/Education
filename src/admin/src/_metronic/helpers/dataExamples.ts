@@ -5,6 +5,7 @@ export interface MessageModel {
   time: string
 }
 
+
 const defaultMessages: Array<MessageModel> = [
   {
     user: 4,

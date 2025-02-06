@@ -4,6 +4,7 @@ import {Role} from "../../role/model/role.model";
 import {UserToRole} from "./user.to.role.model";
 import {ApiProperty} from "@nestjs/swagger";
 import {Comment} from "../../comment/model/comment.model";
+import {ChatMessage} from "../../websocket/model/chat.message.model";
 
 interface UserCreateAttr{
     name:string;
@@ -40,13 +41,18 @@ export class User extends Model<User,UserCreateAttr> {
     password:string;
     @ApiProperty({example:'/static/users/userAvatar.png', description:'Path of users avatar'})
     @Column({type:DataType.STRING, allowNull:true})
-    avatarPath
+    avatarPath:string;
     @HasMany(()=>Review)
     reviews:Review[]
     @BelongsToMany(()=>Role,()=>UserToRole)
     roles:Role[];
     @HasMany(()=>Comment)
     comments:Comment[];
+    @HasMany(() => ChatMessage, { foreignKey: 'senderId', as: 'sentMessages' })
+    sentMessages: ChatMessage[];
+
+    @HasMany(() => ChatMessage, { foreignKey: 'receiverId', as: 'receivedMessages' })
+    receivedMessages: ChatMessage[];
 
 
 

@@ -11,7 +11,8 @@ let Config = {
             COURSES_URL: BASE_URL + '/api/courses',
             REVIEWS_URL: BASE_URL + '/api/reviews',
             AUTHORS_URL: BASE_URL + '/api/authors',
-            MEDIA_ASSETS_URL: BASE_URL + '/api/media-assets'
+            MEDIA_ASSETS_URL: BASE_URL + '/api/media-assets',
+            CHAT_URL: BASE_URL + '/api/chats',
         },
         ASSETS: {
             USER: {

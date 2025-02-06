@@ -1,4 +1,4 @@
 export class ChatClientDto {
-    id: string;
-    login: string;
+    connection_id: string;
+    user_id: number;
 }

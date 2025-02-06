@@ -11,9 +11,9 @@ import {Role} from "../../../role/role-list/core/_role.model.ts";
 const CUSTOM_API_URL = 'http://localhost:3001';
 
 
-const getCustomUsers = (query: string): Promise<CustomUserQueryResponse> => {
+const getCustomUsers = (query: string) => {
     return axios.get(`${CUSTOM_API_URL}/api/users?${query}`)
-        .then((r: AxiosResponse<CustomUserQueryResponse>) => {
+        .then((r) => {
             return r.data;
         });
 }

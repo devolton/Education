@@ -2,14 +2,16 @@ import {
     MessageBody,
     OnGatewayConnection,
     OnGatewayDisconnect,
-    OnGatewayInit, SubscribeMessage,
+    OnGatewayInit,
+    SubscribeMessage,
     WebSocketGateway,
     WebSocketServer
 } from '@nestjs/websockets';
 import {ChatService} from './chat.service';
 import {Server, Socket} from "socket.io";
-import {ChatMessageDto} from "./dto/chat.message.dto";
 import {ChatClientDto} from "./dto/chat.client.dto";
+import {CreateChatMessageDto} from "./dto/create.chat.message.dto";
+import {ChatMessage} from "./model/chat.message.model";
 
 @WebSocketGateway({
     cors: true
@@ -25,17 +27,19 @@ export class WebsocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
     handleConnection(client: Socket, ...args: any[]) {
         console.log(`Client connected: ${client.id}`);
         console.log(client.rooms);
-        let login = client.handshake.query.login as string;
+        let userId:number = parseInt(client.handshake.query.userId as string);
         this.clients.push({
-            login: login,
-            id: client.id
+            user_id: userId,
+            connection_id: client.id
         });
-        console.log(`Client count: ${this.clients.length}`);
+        this.clients.forEach(client => {
+            console.log(`Client: ${client.connection_id} ${client.user_id}`);
+        })
+
     }
 
     handleDisconnect(client: Socket) {
-        console.log(`Client disconnected: ${client.id}`);
-        this.clients = this.clients.filter(oneClient => oneClient.id !== client.id);
+        this.clients = this.clients.filter(oneClient => oneClient.connection_id !== client.id);
         console.log(this.clients);
 
     }
@@ -46,12 +50,16 @@ export class WebsocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
     }
 
     @SubscribeMessage("message")
-    handleMessage(@MessageBody() messageObj: ChatMessageDto) {
-        let receiverObj = this.clients.find(oneClient => oneClient.login === messageObj.receiverLogin);
-        if (receiverObj) {
-            let receiverId = receiverObj.id;
-            this.server.to(receiverId).emit("message", `From: ${messageObj.senderLogin} | Message: ${messageObj.message}`);
+    async sendMessageHandler(client:Socket, @MessageBody() createChatMessageDto: CreateChatMessageDto) {
+        let chatMessage:ChatMessage = await this.chatService.createChatMessage(createChatMessageDto);
+        let receiverObj = this.clients.find(oneClient => oneClient.user_id == chatMessage.receiverId);
+        let senderObj = this.clients.find(oneClient => oneClient.user_id == chatMessage.senderId);
+        if(receiverObj && chatMessage && senderObj) {
+            this.server.to(receiverObj.connection_id).emit("message",chatMessage);
+            this.server.to(senderObj.connection_id).emit("message",chatMessage);
         }
+
     }
+
 
 }

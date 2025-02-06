@@ -49,6 +49,7 @@ const useQueryResponse = () => useContext(CustomQueryResponseContext)
 
 const useCustomQueryResponseData = () :Array<CustomUser> => {
     const {response} = useQueryResponse();
+    console.log(response)
     if (!response) {
         return []
     }
