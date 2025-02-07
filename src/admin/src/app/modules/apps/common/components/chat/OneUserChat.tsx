@@ -1,20 +1,35 @@
-import React, {FC} from 'react';
+import React, {FC, useEffect, useState} from 'react';
 import {toDevoltonAbsoluteUrl} from "../../../../../../_metronic/helpers";
 import {CustomUser} from "../../../user-management/custom-users-list/core/custom.user.model.ts";
 import {useSocket} from "../../../chat/core/ChatMessageSocketProvider.tsx";
 
 type Props = {
-    user:CustomUser,
-    onClickHandler:(user:CustomUser) => void,
+    user: CustomUser,
+    onClickHandler: (user: CustomUser) => void,
 }
-const OneUserChat:FC<Props> = ({user,onClickHandler}) => {
+const OneUserChat: FC<Props> = ({user, onClickHandler}) => {
+    const { onlineUserIds } = useSocket();
+    const [isOnline, setIsOnline] = useState<boolean>(false);
+
+    useEffect(() => {
+
+        setIsOnline(onlineUserIds.includes(user.id));
+    }, [onlineUserIds]);
+
+
+
     return (
         <div>
-            <div onClick={()=>{onClickHandler(user)}} className='cursor-pointer d-flex flex-stack py-4'>
+            <div onClick={() => {
+                onClickHandler(user)
+            }} className='cursor-pointer d-flex flex-stack py-4'>
                 <div className='d-flex align-items-center'>
                     <div className='symbol symbol-45px symbol-circle'>
-                        <img alt='Pic' src={toDevoltonAbsoluteUrl(user.avatarPath)} />
-                        <div className='symbol-badge bg-success start-100 top-100 border-4 h-15px w-15px ms-n2 mt-n2'></div>
+                        <img alt='Pic' src={toDevoltonAbsoluteUrl(user.avatarPath)}/>
+                        {
+                            isOnline && <div
+                                className='symbol-badge bg-success start-100 top-100 border-4 h-15px w-15px ms-n2 mt-n2'></div>
+                        }
                     </div>
 
                     <div className='ms-5'>
@@ -32,7 +47,7 @@ const OneUserChat:FC<Props> = ({user,onClickHandler}) => {
             </div>
 
             <div className='separator separator-dashed d-none'></div>
-            
+
         </div>
     );
 };

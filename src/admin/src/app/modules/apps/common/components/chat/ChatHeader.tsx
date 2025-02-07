@@ -1,10 +1,17 @@
-import React, {FC} from 'react';
+import React, {FC, useEffect, useState} from 'react';
 import {CustomUser} from "../../../user-management/custom-users-list/core/custom.user.model.ts";
 import {useSocket} from "../../../chat/core/ChatMessageSocketProvider.tsx";
 type Props = {
     receiver:CustomUser
 }
 const ChatHeader:FC<Props> = ({receiver}) => {
+    const [isOnline, setIsOnline] = useState<boolean>(false);
+    const {onlineUserIds} = useSocket();
+
+    useEffect(() => {
+        setIsOnline(onlineUserIds.includes(receiver.id));
+    }, [receiver]);
+
 
 
     return (
@@ -19,10 +26,12 @@ const ChatHeader:FC<Props> = ({receiver}) => {
                         {`${receiver.surname} ${receiver.name}`}
                     </a>
 
-                    <div className='mb-0 lh-1'>
-                        <span className='badge badge-success badge-circle w-10px h-10px me-1'></span>
-                        <span className='fs-7 fw-bold text-gray-500'>Active</span>
-                    </div>
+                    {
+                      isOnline && <div className='mb-0 lh-1'>
+                            <span className='badge badge-success badge-circle w-10px h-10px me-1'></span>
+                            <span className='fs-7 fw-bold text-gray-500'>Active</span>
+                        </div>
+                    }
                 </div>
             </div>
 

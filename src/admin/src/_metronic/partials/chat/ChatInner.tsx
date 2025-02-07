@@ -1,4 +1,4 @@
-import {FC, useEffect, useState} from 'react'
+import {FC, useEffect, useRef, useState} from 'react'
 import clsx from 'clsx'
 import {formatTimeAgo, KTIcon,} from '../../helpers'
 
@@ -24,13 +24,13 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
 
 
     const sendMessage = () => {
-        const newMessage:ChatMessage={
-            id:undefined,
-            senderId:currentCustomUser.id,
-            receiverId:receiver.id,
-            message:message
+        const newMessage: ChatMessage = {
+            id: undefined,
+            senderId: currentCustomUser.id,
+            receiverId: receiver.id,
+            message: message
         }
-        socket.emit('message',newMessage);
+        socket.emit('message', newMessage);
         setMessage('')
 
     }
@@ -41,42 +41,41 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
             sendMessage()
         }
     }
-    const messageHandler= (message:ChatMessage) => {
-        let chatMes:ChatMessageModel = {
-            sender:message.sender,
-            receiver:message.receiver,
-            text:message.message,
-            type:(currentCustomUser.id!==message.senderId)?"in":"out",
-            time:formatTimeAgo(message.createdAt.toLocaleString())
+    const messageHandler = (message: ChatMessage) => {
+        let chatMes: ChatMessageModel = {
+            sender: message.sender,
+            receiver: message.receiver,
+            text: message.message,
+            type: (currentCustomUser.id !== message.senderId) ? "in" : "out",
+            time: formatTimeAgo(message.createdAt.toLocaleString())
         };
         console.log(chatMes)
         setMessages((prev) => [...prev, chatMes]);
     }
 
-
     useEffect(() => {
-        if(socket){
-            socket.on('message',messageHandler);
+        if (socket) {
+            socket.on('message', messageHandler);
         }
 
         if (receiver)
-            getUserMessages(receiver.id).then(data=>{
+            getUserMessages(receiver.id).then(data => {
                 console.log(data);
-                let temp:Array<ChatMessageModel>=[];
-                data.forEach(oneMessage=>{
+                let temp: Array<ChatMessageModel> = [];
+                data.forEach(oneMessage => {
                     temp.push({
-                        time:formatTimeAgo(oneMessage.createdAt.toLocaleString()),
-                        type:(oneMessage.senderId!==currentCustomUser.id)?"in":'out',
-                        text:oneMessage.message,
-                        receiver:oneMessage.receiver,
-                        sender:oneMessage.sender
+                        time: formatTimeAgo(oneMessage.createdAt.toLocaleString()),
+                        type: (oneMessage.senderId !== currentCustomUser.id) ? "in" : 'out',
+                        text: oneMessage.message,
+                        receiver: oneMessage.receiver,
+                        sender: oneMessage.sender
 
                     })
                 })
                 setMessages(temp);
             })
-        return(()=>{
-            socket.off('message',messageHandler);
+        return (() => {
+            socket.off('message', messageHandler);
         })
 
     }, [receiver]);
@@ -104,13 +103,14 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
                 }
                 data-kt-scroll-offset={isDrawer ? '0px' : '5px'}
             >{
-                (messages.length>0)?  messages.map((message, index) => {
-                    return (<MessageBlock key={`message-block-${index}`} message={message} isDrawer={isDrawer}/>)
-                }) :
+                (messages.length > 0) ? messages.map((message, index) => {
+                        return (<MessageBlock key={`message-block-${index}`} message={message} isDrawer={isDrawer}/>)
+                    }) :
                     <div className='d-flex text-center w-100 align-content-center justify-content-center'>
                         <KTIcon iconName={'message-add'} iconType={'outline'} className='fs-2'/>
-                </div>
+                    </div>
             }
+            <div className={'d-flex p-2 fa-bold text-primary-emphasis'}><FontAwesomeIcon icon="fa-light fa-circle" style={{color: "#000000",}} /></div>
             </div>
             {/*input message block*/}
             <div
