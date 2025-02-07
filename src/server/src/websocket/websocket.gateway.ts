@@ -12,6 +12,7 @@ import {Server, Socket} from "socket.io";
 import {ChatClientDto} from "./dto/chat.client.dto";
 import {CreateChatMessageDto} from "./dto/create.chat.message.dto";
 import {ChatMessage} from "./model/chat.message.model";
+import {ClientsIdPairDto} from "./dto/clients.id.pair.dto";
 
 @WebSocketGateway({
     cors: true
@@ -51,6 +52,21 @@ export class WebsocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
     afterInit(server: Server) {
         console.log("Websocket server initialized");
 
+    }
+    @SubscribeMessage('start-typing')
+    async startTypingHandler(@MessageBody() idsPair:ClientsIdPairDto) {
+        let receiverObj = this.clients.find(oneClient => oneClient.user_id === idsPair.receiverId);
+        if(receiverObj) {
+            this.server.to(receiverObj.connection_id).emit('start-typing', idsPair.senderId);
+        }
+
+    }
+    @SubscribeMessage('stop-typing')
+    async stopTypingHandler(@MessageBody() idsPair:ClientsIdPairDto) {
+        let receiverObj = this.clients.find(oneClient => oneClient.user_id === idsPair.receiverId);
+        if(receiverObj) {
+            this.server.to(receiverObj.connection_id).emit('stop-typing', idsPair.senderId);
+        }
     }
 
     @SubscribeMessage("message")

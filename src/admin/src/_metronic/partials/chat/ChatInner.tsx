@@ -1,4 +1,4 @@
-import {FC, useEffect, useRef, useState} from 'react'
+import {FC, useEffect, useState} from 'react'
 import clsx from 'clsx'
 import {formatTimeAgo, KTIcon,} from '../../helpers'
 
@@ -9,6 +9,7 @@ import {CustomUser} from "../../../app/modules/apps/user-management/custom-users
 import {useAuth} from "../../../app/modules/auth";
 import {ChatMessage, ChatMessageModel} from "../../../app/modules/apps/chat/core/_chat.model.ts";
 import {useSocket} from "../../../app/modules/apps/chat/core/ChatMessageSocketProvider.tsx";
+import TypingAnimatedDots from "../../../app/modules/apps/chat/TypingAnimatedDots.tsx";
 
 type Props = {
     isDrawer?: boolean
@@ -21,6 +22,7 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
     const {currentCustomUser} = useAuth();
     const [message, setMessage] = useState<string>('')
     const [messages, setMessages] = useState<Array<ChatMessageModel>>([])
+    const [isTypingVisible, setIsTypingVisible] = useState<boolean>(false);
 
 
     const sendMessage = () => {
@@ -52,10 +54,36 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
         console.log(chatMes)
         setMessages((prev) => [...prev, chatMes]);
     }
+    const messageInputFocusHandler = () => {
+        socket.emit('start-typing', {
+            receiverId: receiver.id,
+            senderId: currentCustomUser.id
+        });
+
+    }
+    const messageInputBlurHandler = () => {
+        socket.emit('stop-typing', {
+            receiverId: receiver.id,
+            senderId: currentCustomUser.id
+        })
+    }
+    const startTypingMessageHandler = (senderId: number) => {
+        if (senderId === receiver.id) {
+            setIsTypingVisible(true);
+        }
+
+    }
+    const stopTypingMessageHandler = (senderId: number) => {
+        if (senderId === receiver.id) {
+            setIsTypingVisible(false);
+        }
+    }
 
     useEffect(() => {
         if (socket) {
             socket.on('message', messageHandler);
+            socket.on('start-typing', startTypingMessageHandler);
+            socket.on('stop-typing', stopTypingMessageHandler);
         }
 
         if (receiver)
@@ -76,6 +104,8 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
             })
         return (() => {
             socket.off('message', messageHandler);
+            socket.off('start-typing', startTypingMessageHandler);
+            socket.off('stop-typing', stopTypingMessageHandler);
         })
 
     }, [receiver]);
@@ -110,7 +140,7 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
                         <KTIcon iconName={'message-add'} iconType={'outline'} className='fs-2'/>
                     </div>
             }
-            <div className={'d-flex p-2 fa-bold text-primary-emphasis'}><FontAwesomeIcon icon="fa-light fa-circle" style={{color: "#000000",}} /></div>
+                <TypingAnimatedDots isVisible={isTypingVisible}/>
             </div>
             {/*input message block*/}
             <div
@@ -120,6 +150,8 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
         <textarea
             className='form-control form-control-flush mb-3'
             rows={1}
+            onFocus={messageInputFocusHandler}
+            onBlur={messageInputBlurHandler}
             data-kt-element='input'
             placeholder='Type a message'
             value={message}

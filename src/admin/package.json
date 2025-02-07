@@ -72,6 +72,7 @@
     "eslint": "^8.45.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
+    "framer-motion": "^12.4.1",
     "mini-css-extract-plugin": "2.6.1",
     "remove-files-webpack-plugin": "^1.5.0",
     "rtlcss-webpack-plugin": "4.0.7",
