@@ -1,9 +1,8 @@
-import React, {useState} from 'react';
+import React from 'react';
 import clsx from "clsx";
 import ChatReceiverHeader from "./ChatReceiverHeader.tsx";
 import ChatSenderHeader from "./ChatSenderHeader.tsx";
 import ChatMessage from "./ChatMessage.tsx";
-import {defaultUserInfos, UserInfoModel} from "../../../../../../_metronic/helpers";
 
 const MessageBlock = ({message,isDrawer}) => {
 
@@ -13,6 +12,7 @@ const MessageBlock = ({message,isDrawer}) => {
     } mb-10`
     return (
         <div
+            message-id={message.id}
             className={clsx('d-flex', contentClass, 'mb-10')}
             {...templateAttr}
         >

@@ -13,7 +13,7 @@ import TypingAnimatedDots from "../../../app/modules/apps/chat/TypingAnimatedDot
 
 type Props = {
     isDrawer?: boolean
-    receiver: CustomUser
+    receiver?: CustomUser
 }
 
 
@@ -23,6 +23,23 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
     const [message, setMessage] = useState<string>('')
     const [messages, setMessages] = useState<Array<ChatMessageModel>>([])
     const [isTypingVisible, setIsTypingVisible] = useState<boolean>(false);
+    const [isTyping, setIsTyping] = useState(false);
+    let typingTimeout: NodeJS.Timeout | null = null;
+
+
+    const handleTyping = () => {
+        if (!isTyping) {
+            setIsTyping(true);
+            socket.emit("typing", {userId: "your-user-id"});
+
+            // Автоматически отключаем статус "печатает..." через 3 секунды
+            if (typingTimeout) clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                setIsTyping(false);
+                socket.emit("stop-typing", {userId: "your-user-id"});
+            }, 3000);
+        }
+    };
 
 
     const sendMessage = () => {
@@ -51,7 +68,6 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
             type: (currentCustomUser.id !== message.senderId) ? "in" : "out",
             time: formatTimeAgo(message.createdAt.toLocaleString())
         };
-        console.log(chatMes)
         setMessages((prev) => [...prev, chatMes]);
     }
     const messageInputFocusHandler = () => {
@@ -88,7 +104,6 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
 
         if (receiver)
             getUserMessages(receiver.id).then(data => {
-                console.log(data);
                 let temp: Array<ChatMessageModel> = [];
                 data.forEach(oneMessage => {
                     temp.push({
@@ -141,6 +156,7 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
                     </div>
             }
                 <TypingAnimatedDots isVisible={isTypingVisible}/>
+                <div className={'d-none'}></div>
             </div>
             {/*input message block*/}
             <div
@@ -150,12 +166,17 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
         <textarea
             className='form-control form-control-flush mb-3'
             rows={1}
+
             onFocus={messageInputFocusHandler}
             onBlur={messageInputBlurHandler}
             data-kt-element='input'
             placeholder='Type a message'
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => {
+                setMessage(e.target.value);
+                handleTyping();
+            }
+            }
             onKeyDown={onEnterPress}
         ></textarea>
 
