@@ -4,12 +4,12 @@ import {formatTimeAgo, KTIcon,} from '../../helpers'
 
 import ChatFooter from "../../../app/modules/apps/common/components/chat/ChatFooter.tsx";
 import MessageBlock from "../../../app/modules/apps/common/components/chat/MessageBlock.tsx";
-import {getUserMessages} from "../../../app/modules/apps/chat/core/_chat.request.ts";
 import {CustomUser} from "../../../app/modules/apps/user-management/custom-users-list/core/custom.user.model.ts";
 import {useAuth} from "../../../app/modules/auth";
 import {ChatMessage, ChatMessageModel} from "../../../app/modules/apps/chat/core/_chat.model.ts";
 import {useSocket} from "../../../app/modules/apps/chat/core/ChatMessageSocketProvider.tsx";
 import TypingAnimatedDots from "../../../app/modules/apps/chat/TypingAnimatedDots.tsx";
+import {useMessages} from "../../../app/modules/apps/chat/core/ChatMessagesProvider.tsx";
 
 type Props = {
     isDrawer?: boolean
@@ -20,8 +20,9 @@ type Props = {
 const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
     const {socket} = useSocket();
     const {currentCustomUser} = useAuth();
+    const {messages,addMessage,fetchMessages} = useMessages();
+
     const [message, setMessage] = useState<string>('')
-    const [messages, setMessages] = useState<Array<ChatMessageModel>>([])
     const [isTypingVisible, setIsTypingVisible] = useState<boolean>(false);
     const [isTyping, setIsTyping] = useState(false);
     let typingTimeout: NodeJS.Timeout | null = null;
@@ -68,7 +69,7 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
             type: (currentCustomUser.id !== message.senderId) ? "in" : "out",
             time: formatTimeAgo(message.createdAt.toLocaleString())
         };
-        setMessages((prev) => [...prev, chatMes]);
+       addMessage(chatMes);
     }
     const messageInputFocusHandler = () => {
         socket.emit('start-typing', {
@@ -101,22 +102,8 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
             socket.on('start-typing', startTypingMessageHandler);
             socket.on('stop-typing', stopTypingMessageHandler);
         }
-
-        if (receiver)
-            getUserMessages(receiver.id).then(data => {
-                let temp: Array<ChatMessageModel> = [];
-                data.forEach(oneMessage => {
-                    temp.push({
-                        time: formatTimeAgo(oneMessage.createdAt.toLocaleString()),
-                        type: (oneMessage.senderId !== currentCustomUser.id) ? "in" : 'out',
-                        text: oneMessage.message,
-                        receiver: oneMessage.receiver,
-                        sender: oneMessage.sender
-
-                    })
-                })
-                setMessages(temp);
-            })
+        if(receiver)
+        fetchMessages(receiver.id);
         return (() => {
             socket.off('message', messageHandler);
             socket.off('start-typing', startTypingMessageHandler);

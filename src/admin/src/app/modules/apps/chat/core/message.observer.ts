@@ -8,6 +8,7 @@ export const useMessageObserver = (messages) => {
             (entries) => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
+                        console.log("Intersecting", entry);
                         const messageId = entry.target.getAttribute("message-id");
                         if (messageId) {
                             //onReadMessage(messageId);
@@ -19,7 +20,7 @@ export const useMessageObserver = (messages) => {
             { root: null, rootMargin: "0px", threshold: 0.9 }
         );
 
-        const elements = document.querySelectorAll("[data-message-id]");
+        const elements = document.querySelectorAll("[message-id]");
         elements.forEach((el) => observer.current?.observe(el));
 
         return () => {

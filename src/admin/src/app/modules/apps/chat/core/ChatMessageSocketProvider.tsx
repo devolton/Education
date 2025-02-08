@@ -1,8 +1,8 @@
-import {Context, createContext, FC, useContext, useEffect, useMemo, useState} from "react";
-import Socket = SocketIOClient.Socket;
+import {Context, createContext, FC, useContext, useEffect, useState} from "react";
 import {ID, WithChildren} from "../../../../../_metronic/helpers";
 import {useAuth} from "../../../auth";
 import {connect} from "socket.io-client";
+import Socket = SocketIOClient.Socket;
 
 interface SocketContextProps {
     socket: Socket | null;
@@ -18,6 +18,9 @@ const ChatMessageSocketProvider: FC<WithChildren> = ({children}) => {
     const {currentCustomUser} = useAuth();
     const [onlineUserIds,setOnlineUsersIds] = useState<Array<ID>>([]);
     const [socket, setSocket] = useState<Socket | null>(null);
+
+
+
     useEffect(() => {
         const socket: Socket = connect("http://localhost:3001", {
             query: {userId: currentCustomUser.id},
@@ -33,6 +36,7 @@ const ChatMessageSocketProvider: FC<WithChildren> = ({children}) => {
         })
     }, []);
 
+
     const connectionHandler =(onlineUserIds:Array<ID>)=>{
         console.log(`Online connection`);
         console.log(onlineUserIds)
@@ -45,6 +49,8 @@ const ChatMessageSocketProvider: FC<WithChildren> = ({children}) => {
         </ChatMessageSocketContext.Provider>
     )
 }
+
+
 
 export {
     ChatMessageSocketProvider,

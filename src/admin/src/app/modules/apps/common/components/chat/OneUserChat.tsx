@@ -6,8 +6,9 @@ import {useSocket} from "../../../chat/core/ChatMessageSocketProvider.tsx";
 type Props = {
     user: CustomUser,
     onClickHandler: (user: CustomUser) => void,
+    lastMessageTime?:string
 }
-const OneUserChat: FC<Props> = ({user, onClickHandler}) => {
+const OneUserChat: FC<Props> = ({user,lastMessageTime, onClickHandler}) => {
     const { onlineUserIds } = useSocket();
     const [isOnline, setIsOnline] = useState<boolean>(false);
 
@@ -41,7 +42,7 @@ const OneUserChat: FC<Props> = ({user, onClickHandler}) => {
                 </div>
 
                 <div className='d-flex flex-column align-items-end ms-2'>
-                    <span className='text-muted fs-7 mb-1'>20 hrs</span>
+                    <span className='text-muted fs-7 mb-1'>{lastMessageTime}</span>
                     <span className='badge badge-sm badge-circle badge-light-success'>6</span>
                 </div>
             </div>
