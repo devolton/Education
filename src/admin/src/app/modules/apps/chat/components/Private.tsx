@@ -13,7 +13,6 @@ import {ChatMessagesProvider, useMessages} from "../core/ChatMessagesProvider.ts
 
 const Private: FC = () => {
     const {currentCustomUser} = useAuth();
-    const {lastMessageTime} =useMessages();
     const [data, setData] = useState<Array<CustomUser>>([]);
     const [receiver, setReceiver] = useState<CustomUser>(null);
     const users = useMemo(() => data, [data]);
@@ -68,7 +67,6 @@ const Private: FC = () => {
                                         users.map((oneUser, index) => {
                                             return oneUser.id !== currentCustomUser.id &&
                                                 <OneUserChat key={`user-chat-${index}`}
-                                                             lastMessageTime={lastMessageTime}
                                                              user={oneUser}
                                                              onClickHandler={onClickChatHandler}/>
                                         })

@@ -41,7 +41,7 @@ export const formatTimeAgo=(date: string): string =>{
 
   // If the message was sent less than 1 hour ago
   if (diffInMinutes < 60) {
-    return `${diffInMinutes} minutes ago`;
+    return `${diffInMinutes} min ago`;
   }
 
   // If the message was sent less than 1 day ago

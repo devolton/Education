@@ -9,7 +9,22 @@ const getUserMessages=(receiverId:ID)=>{
           return response.data;
         });
 }
+const getLastReceiverMessage = (receiverId: ID) => {
+    return axios.get(Config.PATH.SERVER.CHAT_URL + `/last/${receiverId}`)
+        .then((response: AxiosResponse<ChatMessage>) => {
+            return response.data;
+        })
+}
+const getUnreadReceiverMessagesCount =(receiverId:ID)=>{
+    return axios.get(Config.PATH.SERVER.CHAT_URL+`/unread/${receiverId}`)
+        .then((response:AxiosResponse<number>)=>{
+            return response.data;
+        })
+}
 
 export {
     getUserMessages,
+    getLastReceiverMessage,
+    getUnreadReceiverMessagesCount,
+
 }

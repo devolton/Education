@@ -2,21 +2,22 @@ import React, {FC, useEffect, useState} from 'react';
 import {toDevoltonAbsoluteUrl} from "../../../../../../_metronic/helpers";
 import {CustomUser} from "../../../user-management/custom-users-list/core/custom.user.model.ts";
 import {useSocket} from "../../../chat/core/ChatMessageSocketProvider.tsx";
+import {useLastMessageTime, useMessages, useUnreadMessagesCount} from "../../../chat/core/ChatMessagesProvider.tsx";
 
 type Props = {
     user: CustomUser,
-    onClickHandler: (user: CustomUser) => void,
-    lastMessageTime?:string
+    onClickHandler: (user: CustomUser) => void
 }
-const OneUserChat: FC<Props> = ({user,lastMessageTime, onClickHandler}) => {
-    const { onlineUserIds } = useSocket();
+const OneUserChat: FC<Props> = ({user, onClickHandler}) => {
+    const {onlineUserIds} = useSocket();
+    const unreadMessagesCount = useUnreadMessagesCount(user.id);
+    const lastMessageTime = useLastMessageTime(user.id);
     const [isOnline, setIsOnline] = useState<boolean>(false);
 
     useEffect(() => {
 
         setIsOnline(onlineUserIds.includes(user.id));
     }, [onlineUserIds]);
-
 
 
     return (
@@ -43,7 +44,9 @@ const OneUserChat: FC<Props> = ({user,lastMessageTime, onClickHandler}) => {
 
                 <div className='d-flex flex-column align-items-end ms-2'>
                     <span className='text-muted fs-7 mb-1'>{lastMessageTime}</span>
-                    <span className='badge badge-sm badge-circle badge-light-success'>6</span>
+                    {
+                        (unreadMessagesCount>0) &&  <span className='badge badge-sm badge-circle badge-light-primary'>{unreadMessagesCount}</span>
+                    }
                 </div>
             </div>
 

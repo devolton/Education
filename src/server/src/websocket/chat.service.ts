@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import {Injectable} from '@nestjs/common';
 import {InjectModel} from "@nestjs/sequelize";
 import {ChatMessage} from "./model/chat.message.model";
 import {CreateChatMessageDto} from "./dto/create.chat.message.dto";
@@ -9,38 +9,41 @@ import {User} from "../user/model/user.model";
 
 @Injectable()
 export class ChatService {
-    constructor(@InjectModel(ChatMessage) private readonly chatRepository:typeof ChatMessage){}
+    constructor(@InjectModel(ChatMessage) private readonly chatRepository: typeof ChatMessage) {
+    }
 
-    async getMessagesSpecificUserByUserId(senderId:number,receiverId:number, limit:number=100,offset:number=0):Promise<Array<ChatMessage>>{
-         return await this.chatRepository.findAll({
-             where: {
-                 [Op.or]: [
-                     { senderId, receiverId },
-                     { senderId: receiverId, receiverId: senderId }
-                 ]
-             },
-            limit:limit,
-            offset:offset,
-            order:[['createdAt','ASC']],
-             include:[
-                 {
-                     model: User,
-                     as: 'sender',
-                 },
-                 {
-                     model: User,
-                     as: 'receiver'
-                 }
-                 ]
+    async getMessagesSpecificUserByUserId(senderId: number, receiverId: number, limit: number = 100, offset: number = 0): Promise<Array<ChatMessage>> {
+        return await this.chatRepository.findAll({
+            where: {
+                [Op.or]: [
+                    {senderId, receiverId},
+                    {senderId: receiverId, receiverId: senderId}
+                ]
+            },
+            limit: limit,
+            offset: offset,
+            order: [['createdAt', 'ASC']],
+            include: [
+                {
+                    model: User,
+                    as: 'sender',
+                },
+                {
+                    model: User,
+                    as: 'receiver'
+                }
+            ]
         });
 
 
     }
-    async createChatMessage(createChatMessageDto:CreateChatMessageDto){
-        let createdMessage= await this.chatRepository.create(createChatMessageDto);
-        if(createdMessage){
-            return await this.chatRepository.findOne({where: {id:createdMessage.id},
-                include:[
+
+    async createChatMessage(createChatMessageDto: CreateChatMessageDto) {
+        let createdMessage = await this.chatRepository.create(createChatMessageDto);
+        if (createdMessage) {
+            return await this.chatRepository.findOne({
+                where: {id: createdMessage.id},
+                include: [
                     {
                         model: User,
                         as: 'sender',
@@ -49,24 +52,66 @@ export class ChatService {
                         model: User,
                         as: 'receiver'
                     }
-                ]})
+                ]
+            })
         }
+
     }
-    async updateChatMessage(messageId:number,updateChatMessageDto:UpdateChatMessageDto):Promise<ChatMessage>{
-        let messageForUpdate=await this.chatRepository.findOne({where:{
-            id:messageId
-        }});
-        if(!messageForUpdate){
-            throw new NotFoundException("chatMessage",messageId);
+
+    async getLastReceiverMessage(senderId:number,receiverId: number):Promise<ChatMessage> {
+        let receiverMessages: Array<ChatMessage> = await this.chatRepository.findAll({
+            where: {
+                receiverId: receiverId,
+                senderId: senderId,
+            },
+            include: [
+                {
+                    model: User,
+                    as: 'sender',
+                },
+                {
+                    model: User,
+                    as: 'receiver'
+                }
+            ],
+            order: [['createdAt', 'ASC']],
+        });
+        if(receiverMessages.length > 0) {
+            return receiverMessages[receiverMessages.length - 1];
+        }
+        return null;
+    }
+    async getUnreadMessagesCount(senderId:number,receiverId:number):Promise<number> {
+        return await this.chatRepository.count({
+            where:{
+                senderId:senderId,
+                receiverId:receiverId,
+                isRead:false
+            }
+        })
+    }
+
+    async updateChatMessage(messageId: number, updateChatMessageDto: UpdateChatMessageDto): Promise<ChatMessage> {
+        let messageForUpdate = await this.chatRepository.findOne({
+            where: {
+                id: messageId
+            }
+        });
+        if (!messageForUpdate) {
+            throw new NotFoundException("chatMessage", messageId);
         }
         return messageForUpdate.update(updateChatMessageDto);
     }
-    async removeMessageById(id:number){
-        return await this.chatRepository.destroy({where:{id:id}});
+
+    async removeMessageById(id: number) {
+        return await this.chatRepository.destroy({where: {id: id}});
     }
-    async removeMessagesByUserId(senderId:number){
-        return await this.chatRepository.destroy({where:{
-            senderId:senderId
-        }});
+
+    async removeMessagesByUserId(senderId: number) {
+        return await this.chatRepository.destroy({
+            where: {
+                senderId: senderId
+            }
+        });
     }
 }

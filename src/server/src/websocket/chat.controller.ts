@@ -22,32 +22,52 @@ export class ChatController {
                   @Query('offset') offset: number,) {
 
         let senderId = req.body.userId;
-        return this.chatService.getMessagesSpecificUserByUserId(senderId, receiverId, limit, offset)
+        return await this.chatService.getMessagesSpecificUserByUserId(senderId, receiverId, limit, offset)
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @UseInterceptors(AddUserIdInterceptor)
+    @Get('/last/:id')
+    async getReceiverLastMessage(@Req() req: Request,
+                                 @Param('id') receiverId: number): Promise<ChatMessage> {
+        let senderId = req.body.userId;
+        return await this.chatService.getLastReceiverMessage(senderId, receiverId);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @UseInterceptors(AddUserIdInterceptor)
+    @Get('/unread/:id')
+    async getUnreadMessageCount(@Req() req: Request,
+                                @Param('id') receiverId: number): Promise<number> {
+        let senderId = req.body.userId;
+        return await this.chatService.getUnreadMessagesCount(senderId,receiverId);
     }
 
 
     @UseInterceptors(AddUserIdInterceptor)
     @Post()
     async createChatMessage(@Req() req: Request,
-                            @Body('message') createMessageDto: CreateChatMessageDto):Promise<ChatMessage> {
+                            @Body('message') createMessageDto: CreateChatMessageDto): Promise<ChatMessage> {
 
         createMessageDto.senderId = req.body.userId;
         return await this.chatService.createChatMessage(createMessageDto);
     }
+
     @Put("/:id")
     async updateMessage(@Param('id') id: number,
-                        @Body('message') updateMessageDto: UpdateChatMessageDto):Promise<ChatMessage> {
+                        @Body('message') updateMessageDto: UpdateChatMessageDto): Promise<ChatMessage> {
         return await this.chatService.updateChatMessage(id, updateMessageDto);
     }
+
     @Delete(`/:id`)
-    async deleteMessage(@Param('id') id: number):Promise<number> {
+    async deleteMessage(@Param('id') id: number): Promise<number> {
         return await this.chatService.removeMessageById(id);
     }
+
     @Delete('/sender/:id')
-    async deleteUsersMessages(@Param('id') id: number):Promise<number> {
+    async deleteUsersMessages(@Param('id') id: number): Promise<number> {
         return this.chatService.removeMessagesByUserId(id);
     }
-
 
 
 }
