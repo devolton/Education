@@ -1,4 +1,4 @@
-import {FC, useEffect, useRef, useState} from 'react'
+import {FC, useEffect, useLayoutEffect, useRef, useState} from 'react'
 import clsx from 'clsx'
 import {formatTimeAgo, KTIcon,} from '../../helpers'
 
@@ -23,6 +23,8 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
     const {currentCustomUser} = useAuth();
     const {messages,addMessage,fetchMessages} = useMessages();
     const messageRefs = useRef<(HTMLDivElement | null)[]>([]);
+    const containerRef = useRef<HTMLDivElement>(null);
+
     useMessageObserver(messages);
     const [message, setMessage] = useState<string>('')
     const [isTypingVisible, setIsTypingVisible] = useState<boolean>(false);
@@ -116,6 +118,12 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
         })
 
     }, [receiver]);
+    useLayoutEffect(()=>{
+
+        if (containerRef.current) {
+            containerRef.current.scrollTop = containerRef.current.scrollHeight;
+        }
+    },[messages])
 
     return (
         <div
@@ -123,7 +131,8 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
             id={isDrawer ? 'kt_drawer_chat_messenger_body' : 'kt_chat_messenger_body'}
         >
             <div
-                className={clsx('scroll-y me-n5 pe-5', {'min-h-300px max-h-300px h-300px h-lg-auto': !isDrawer})}
+                ref={containerRef}
+                className={clsx('scroll-y me-n5 pe-5 overflow-y-auto', {'min-h-300px max-h-300px h-300px h-lg-auto': !isDrawer})}
                 data-kt-element='messages'
                 data-kt-scroll='true'
                 data-kt-scroll-activate='{default: false, lg: true}'
@@ -159,7 +168,6 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
                     </div>
             }
                 <TypingAnimatedDots isVisible={isTypingVisible}/>
-                <div className={'d-none'}></div>
             </div>
             {/*input message block*/}
             <div
