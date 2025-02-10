@@ -29,6 +29,7 @@ const ChatMessagesProvider: FC<WithChildren> = ({children}) => {
                 let temp: Array<ChatMessageModel> = [];
                 data.forEach(oneMessage => {
                     temp.push({
+                        id: oneMessage.id,
                         time: formatTimeAgo(oneMessage.createdAt.toLocaleString()),
                         type: (oneMessage.senderId !== currentCustomUser.id) ? "in" : 'out',
                         text: oneMessage.message,
@@ -61,6 +62,7 @@ const useUnreadMessagesCount = (receiverId: ID) => {
     useEffect(() => {
         getUnreadReceiverMessagesCount(receiverId)
             .then((data: number) => {
+                console.log("Unread messages count ----", data);
                 setUnreadMessagesCount(data);
             })
     }, [])

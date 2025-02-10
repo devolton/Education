@@ -1,9 +1,10 @@
 import React, {FC} from 'react';
-import {MessageModel, toDevoltonAbsoluteUrl} from "../../../../../../_metronic/helpers";
+import {toDevoltonAbsoluteUrl} from "../../../../../../_metronic/helpers";
 import {useAuth} from "../../../../auth";
+import {ChatMessageModel} from "../../../chat/core/_chat.model.ts";
 
- type Props={
-    message:MessageModel
+type Props={
+    message:ChatMessageModel
 }
 const ChatSenderHeader:FC<Props> = ({message}) => {
     const {currentCustomUser} = useAuth();

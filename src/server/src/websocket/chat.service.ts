@@ -86,8 +86,8 @@ export class ChatService {
     async getUnreadMessagesCount(senderId: number, receiverId: number): Promise<number> {
         return await this.chatRepository.count({
             where: {
-                senderId: senderId,
-                receiverId: receiverId,
+                senderId: receiverId,
+                receiverId: senderId,
                 isRead: false
             }
         })
@@ -105,6 +105,19 @@ export class ChatService {
             throw new NotFoundException("chatMessage", messageId);
         }
         return messageForUpdate.update(updateChatMessageDto);
+    }
+    async setChatMessageReadState(id:number):Promise<ChatMessage> {
+        let messageForUpdate = await this.chatRepository.findOne({
+            where:{
+                id:id
+            }}
+        );
+        if(!messageForUpdate) {
+            throw new NotFoundException("chat_message",id);
+        }
+        return await messageForUpdate.update({
+            isRead:true
+        });
     }
 
     async removeMessageById(id: number) {

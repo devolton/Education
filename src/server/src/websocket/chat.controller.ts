@@ -59,6 +59,10 @@ export class ChatController {
                         @Body('message') updateMessageDto: UpdateChatMessageDto): Promise<ChatMessage> {
         return await this.chatService.updateChatMessage(id, updateMessageDto);
     }
+    @Put('/set-read/:id')
+    async setMessageRead(@Param('id') id: number):Promise<ChatMessage> {
+        return await this.chatService.setChatMessageReadState(id);
+    }
 
     @Delete(`/:id`)
     async deleteMessage(@Param('id') id: number): Promise<number> {

@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
+import {ChatMessageModel} from "./_chat.model.ts";
+import {setChatMessageReadState} from "./_chat.request.ts";
 
-export const useMessageObserver = (messages) => {
+export const useMessageObserver = (messages:Array<ChatMessageModel>) => {
     const observer = useRef<IntersectionObserver | null>(null);
 
     useEffect(() => {
@@ -8,12 +10,12 @@ export const useMessageObserver = (messages) => {
             (entries) => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
-                        console.log("Intersecting", entry);
                         const messageId = entry.target.getAttribute("message-id");
-                        if (messageId) {
-                            //onReadMessage(messageId);
-                            console.log("Message ID: ", messageId);
+                        const messageType = entry.target.getAttribute("message-type");
+                        if (messageId && messageType === 'in') {
+                            setChatMessageReadState(parseInt(messageId));
                         }
+
                     }
                 });
             },

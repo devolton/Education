@@ -14,7 +14,13 @@ export type ChatMessage = {
     createdAt?:Date,
     updatedAt?:Date
 }
+export type UpdateChatMessageDto={
+    message:string,
+    isRead:boolean,
+    updatedAt?:Date
+}
 export interface ChatMessageModel {
+    id:number,
     sender:CustomUser,
     receiver:CustomUser,
     type: 'in' | 'out'

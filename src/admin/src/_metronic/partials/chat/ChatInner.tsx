@@ -1,4 +1,4 @@
-import {FC, useEffect, useState} from 'react'
+import {FC, useEffect, useRef, useState} from 'react'
 import clsx from 'clsx'
 import {formatTimeAgo, KTIcon,} from '../../helpers'
 
@@ -10,6 +10,7 @@ import {ChatMessage, ChatMessageModel} from "../../../app/modules/apps/chat/core
 import {useSocket} from "../../../app/modules/apps/chat/core/ChatMessageSocketProvider.tsx";
 import TypingAnimatedDots from "../../../app/modules/apps/chat/TypingAnimatedDots.tsx";
 import {useMessages} from "../../../app/modules/apps/chat/core/ChatMessagesProvider.tsx";
+import {useMessageObserver} from "../../../app/modules/apps/chat/core/message.observer.ts";
 
 type Props = {
     isDrawer?: boolean
@@ -21,7 +22,8 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
     const {socket} = useSocket();
     const {currentCustomUser} = useAuth();
     const {messages,addMessage,fetchMessages} = useMessages();
-
+    const messageRefs = useRef<(HTMLDivElement | null)[]>([]);
+    useMessageObserver(messages);
     const [message, setMessage] = useState<string>('')
     const [isTypingVisible, setIsTypingVisible] = useState<boolean>(false);
     const [isTyping, setIsTyping] = useState(false);
@@ -63,6 +65,7 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
     }
     const messageHandler = (message: ChatMessage) => {
         let chatMes: ChatMessageModel = {
+            id:undefined,
             sender: message.sender,
             receiver: message.receiver,
             text: message.message,
@@ -136,7 +139,11 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
                 data-kt-scroll-offset={isDrawer ? '0px' : '5px'}
             >{
                 (messages.length > 0) ? messages.map((message, index) => {
-                        return (<MessageBlock key={`message-block-${index}`} message={message} isDrawer={isDrawer}/>)
+                        return (<MessageBlock
+                            key={`message-block-${index}`}
+                            ref={(el) => (messageRefs.current[index] = el)}
+                            message={message}
+                            isDrawer={isDrawer}/>)
                     }) :
                     <div className='d-flex text-center w-100 align-content-center justify-content-center'>
                         <KTIcon iconName={'message-add'} iconType={'outline'} className='fs-2'/>
