@@ -60,25 +60,28 @@ const useMessages = (() => useContext(ChatMessagesContext));
 
 const useUnreadMessagesCount = (receiverId: ID) => {
     const [unreadMessagesCount, setUnreadMessagesCount] = useState<number>(0);
+
+    const {messages} = useMessages();
     useEffect(() => {
         getUnreadReceiverMessagesCount(receiverId)
             .then((data: number) => {
                 setUnreadMessagesCount(data);
             })
-    }, [])
+    }, [messages]);
     return unreadMessagesCount;
 
 
 }
 const useLastMessageTime = (receiverId: ID) => {
     const [lastMessageTime, setLastMessageTime] = useState<string>("");
+    const {messages} = useMessages();
     useEffect(() => {
         getLastReceiverMessage(receiverId)
             .then((data:ChatMessage)=>{
                 if(data)
                     setLastMessageTime(formatTimeAgo(data.createdAt.toLocaleString()));
             })
-    }, []);
+    }, [messages]);
     return lastMessageTime;
 }
 

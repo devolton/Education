@@ -80,6 +80,7 @@ const Private: FC = () => {
                                        users.length>0 && users.map((oneUser, index) => {
                                             return oneUser.id !== currentCustomUser.id &&
                                                 <OneUserChat key={`user-chat-${index}`}
+                                                             isActive={oneUser.id===receiver.id}
                                                              user={oneUser}
                                                              onClickHandler={onClickChatHandler}/>
                                         })

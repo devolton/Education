@@ -2,16 +2,15 @@ import React, {FC, useEffect, useState} from 'react';
 import {toDevoltonAbsoluteUrl} from "../../../../../../_metronic/helpers";
 import {CustomUser} from "../../../user-management/custom-users-list/core/custom.user.model.ts";
 import {useSocket} from "../../../chat/core/ChatMessageSocketProvider.tsx";
-import {useLastMessageTime, useUnreadMessagesCount} from "../../../chat/core/ChatMessagesProvider.tsx";
-import {useAuth} from "../../../../auth";
+import {useLastMessageTime, useMessages, useUnreadMessagesCount} from "../../../chat/core/ChatMessagesProvider.tsx";
 import {isEmptyArray} from "formik";
 
 type Props = {
     user: CustomUser,
+    isActive: boolean,
     onClickHandler: (user: CustomUser) => void
 }
-const OneUserChat: FC<Props> = ({user, onClickHandler}) => {
-    const {currentCustomUser} = useAuth();
+const OneUserChat: FC<Props> = ({user,isActive, onClickHandler}) => {
     const {onlineUserIds} = useSocket();
     const unreadMessagesCount = useUnreadMessagesCount(user.id);
     const lastMessageTime = useLastMessageTime(user.id);
@@ -46,7 +45,7 @@ const OneUserChat: FC<Props> = ({user, onClickHandler}) => {
         <div>
             <div onClick={() => {
                 onClickHandler(user)
-            }} className='cursor-pointer d-flex flex-stack py-4'>
+            }} className={`p-1 rounded-2 cursor-pointer d-flex flex-stack py-4 ${isActive?'bg-light-primary':''}`}>
                 <div className='d-flex align-items-center'>
                     <div className='symbol symbol-45px symbol-circle'>
                         <img alt='Pic' src={toDevoltonAbsoluteUrl(user.avatarPath)}/>

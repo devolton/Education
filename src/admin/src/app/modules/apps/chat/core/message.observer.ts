@@ -12,6 +12,7 @@ export const useMessageObserver = (messages:Array<ChatMessageModel>) => {
                     if (entry.isIntersecting) {
                         const messageId = entry.target.getAttribute("message-id");
                         const messageType = entry.target.getAttribute("message-type");
+                        console.log(messageId);
                         if (messageId && messageType === 'in') {
                             setChatMessageReadState(parseInt(messageId));
                         }
