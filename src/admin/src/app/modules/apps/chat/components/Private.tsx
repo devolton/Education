@@ -6,27 +6,38 @@ import {Content} from '../../../../../_metronic/layout/components/content'
 import OneUserChat from "../../common/components/chat/OneUserChat.tsx";
 import ChatHeader from "../../common/components/chat/ChatHeader.tsx";
 import {useAuth} from "../../../auth";
-import {getCustomUsers} from "../../user-management/custom-users-list/core/_userRequests.ts";
+import {getCustomUsersWithMessages} from "../../user-management/custom-users-list/core/_userRequests.ts";
 import {CustomUser} from "../../user-management/custom-users-list/core/custom.user.model.ts";
 import {ChatMessageSocketProvider} from "../core/ChatMessageSocketProvider.tsx";
-import {ChatMessagesProvider, useMessages} from "../core/ChatMessagesProvider.tsx";
+import {ChatMessagesProvider} from "../core/ChatMessagesProvider.tsx";
 
 const Private: FC = () => {
     const {currentCustomUser} = useAuth();
     const [data, setData] = useState<Array<CustomUser>>([]);
     const [receiver, setReceiver] = useState<CustomUser>(null);
     const users = useMemo(() => data, [data]);
+    const [search,setSearch] = useState<string>('')
     useEffect(() => {
-        getCustomUsers('')
-            .then((res) => {
-                setData(res.data);
-                if (res.data.length > 0)
-                    setReceiver(res.data[0]);
+        getCustomUsersWithMessages(currentCustomUser.id,search)
+            .then((data:Array<CustomUser>) => {
+
+                if(data) {
+                    let sortedUsers:Array<CustomUser> =data.sort((first,second)=>{
+                        if(first.receivedMessages.length===0)
+                            return 1;
+                        if(second.receivedMessages.length===0)
+                            return -1;
+                        return (first.receivedMessages[0].createdAt>second.receivedMessages[0].createdAt) ? -1:1;
+                    })
+                    setData(sortedUsers);
+                    if (sortedUsers.length > 0)
+                        setReceiver(sortedUsers[0]);
+                }
             })
             .catch(e => {
                 console.log(e);
             });
-    }, [])
+    }, [search])
 
     const onClickChatHandler = (user: CustomUser) => {
         setReceiver(user);
@@ -48,7 +59,9 @@ const Private: FC = () => {
                                         type='text'
                                         className='form-control form-control-solid px-15'
                                         name='search'
-                                        placeholder='Search by username or email...'
+                                        value={search}
+                                        onChange={(e)=>{setSearch(e.target.value)}}
+                                        placeholder='Search by full name...'
                                     />
                                 </form>
                             </div>
@@ -64,7 +77,7 @@ const Private: FC = () => {
                                     data-kt-scroll-offset='0px'
                                 >
                                     {
-                                        users.map((oneUser, index) => {
+                                       users.length>0 && users.map((oneUser, index) => {
                                             return oneUser.id !== currentCustomUser.id &&
                                                 <OneUserChat key={`user-chat-${index}`}
                                                              user={oneUser}

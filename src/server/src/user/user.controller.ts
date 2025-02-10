@@ -63,10 +63,22 @@ export class UserController {
     async getUserByLogin(@Body('login') login: string): Promise<User> {
         return await this.userService.getUserByLogin(login);
     }
+    // @UseGuards(JwtAuthGuard)
+    // @UseInterceptors(AddUserIdInterceptor)
+    @Get('/chat_messages/:id')
+    async getUsersWithMessages(@Req() req:Request,
+                               @Param('id') id:number,
+                               @Query('full_name') fullName:string):Promise<Array<User>> {
+        //let id = req.body.userId;
+        return await this.userService.getUsersWithChatMessages(id,fullName);
+    }
+
     @Get('/:id')
     async getUserById(@Param('id') id:number):Promise<User>{
         return await this.userService.getUserById(id);
     }
+
+
 
     @Roles("admin")
     @UseGuards(RoleGuard)

@@ -16,6 +16,7 @@ import {PaginationService} from "../../pagination/pagination.service";
 import {UpdatePasswordDto} from "../dto/update.password.dto";
 import {UpdateLoginDto} from "../dto/update.login.dto";
 import {Config} from "../../Config";
+import {ChatMessage} from "../../websocket/model/chat.message.model";
 
 @Injectable()
 export class UserService {
@@ -34,6 +35,35 @@ export class UserService {
             include: [{model: Role, attributes: ['value']}]
         });
     }
+
+    async getUsersWithChatMessages(senderId: number, search: string = ''): Promise<User[]> {
+        const searchParts = search.split(" ").map(part => `%${part}%`);
+
+        const searchConditions = searchParts.map(part => ({
+            [Op.or]: [
+                {surname: {[Op.iLike]: part}},
+                {name: {[Op.iLike]: part}},
+                {middleName: {[Op.iLike]: part}},
+            ],
+        }));
+        return await this.userRepository.findAll({
+            where: {
+                [Op.and]: searchConditions
+            },
+            include: [
+                {
+                    model: ChatMessage,
+                    as: 'receivedMessages',
+                    where: {senderId: senderId},
+                    order: [['createdAt', 'DESC']],
+                    limit: 1
+                },
+            ],
+
+        });
+
+    }
+
 
     async createUser(userDto: CreateUserDto, avatar: Express.Multer.File = null): Promise<User> {
         const transaction = await this.sequelize.transaction();
@@ -60,6 +90,7 @@ export class UserService {
             throw new HttpException('Created user error!', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     async updateUserAvatar(userId: number, avatar: Express.Multer.File): Promise<User> {
         let user = await this.userRepository.findByPk(userId);

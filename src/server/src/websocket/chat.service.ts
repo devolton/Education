@@ -6,6 +6,7 @@ import {UpdateChatMessageDto} from "./dto/update.chat.message.dto";
 import {NotFoundException} from "../exceptions/not.found.exception";
 import {Op} from "sequelize";
 import {User} from "../user/model/user.model";
+import {Sequelize} from "sequelize-typescript";
 
 @Injectable()
 export class ChatService {
@@ -58,7 +59,7 @@ export class ChatService {
 
     }
 
-    async getLastReceiverMessage(senderId:number,receiverId: number):Promise<ChatMessage> {
+    async getLastReceiverMessage(senderId: number, receiverId: number): Promise<ChatMessage> {
         let receiverMessages: Array<ChatMessage> = await this.chatRepository.findAll({
             where: {
                 receiverId: receiverId,
@@ -76,20 +77,23 @@ export class ChatService {
             ],
             order: [['createdAt', 'ASC']],
         });
-        if(receiverMessages.length > 0) {
+        if (receiverMessages.length > 0) {
             return receiverMessages[receiverMessages.length - 1];
         }
         return null;
     }
-    async getUnreadMessagesCount(senderId:number,receiverId:number):Promise<number> {
+
+    async getUnreadMessagesCount(senderId: number, receiverId: number): Promise<number> {
         return await this.chatRepository.count({
-            where:{
-                senderId:senderId,
-                receiverId:receiverId,
-                isRead:false
+            where: {
+                senderId: senderId,
+                receiverId: receiverId,
+                isRead: false
             }
         })
     }
+
+
 
     async updateChatMessage(messageId: number, updateChatMessageDto: UpdateChatMessageDto): Promise<ChatMessage> {
         let messageForUpdate = await this.chatRepository.findOne({

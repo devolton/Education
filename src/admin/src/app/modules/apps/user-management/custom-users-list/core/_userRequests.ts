@@ -1,13 +1,9 @@
 import axios, {AxiosResponse} from "axios";
-import {ID, Response} from "../../../../../../_metronic/helpers";
-import {
-    CreateCustomUserDto,
-    CustomUser,
-    CustomUserQueryResponse,
-    UpdateCustomUserDto
-} from "./custom.user.model.ts";
-import {IUpdateLogin, IUpdatePassword} from "../../../../accounts/components/settings/SettingsModel.ts";
-import {Role} from "../../../role/role-list/core/_role.model.ts";
+import {ID} from "../../../../../../_metronic/helpers";
+import {CreateCustomUserDto, CustomUser, UpdateCustomUserDto} from "./custom.user.model.ts";
+import {IUpdateLogin} from "../../../../accounts/components/settings/SettingsModel.ts";
+import {Config} from "../../../../../../env.config.ts";
+
 const CUSTOM_API_URL = 'http://localhost:3001';
 
 
@@ -16,6 +12,13 @@ const getCustomUsers = (query: string) => {
         .then((r) => {
             return r.data;
         });
+}
+const getCustomUsersWithMessages=(senderId:number,query: string) => {
+    return axios.get(`${CUSTOM_API_URL}/api/users/chat_messages/${senderId}?full_name=${query}`)
+        .then((r)=>{
+            return r.data;
+        })
+
 }
 const updateCustomUser = (id: number, updateUserDto: UpdateCustomUserDto) => {
     return axios.put(`${CUSTOM_API_URL}/api/users/${id}`, {user: updateUserDto})
@@ -92,6 +95,7 @@ const addRoleToUser = (roleIds: number[], userId: ID) => {
 export {
     getCustomUsers,
     getCustomUserById,
+    getCustomUsersWithMessages,
     updateCustomUser,
     createCustomUser,
     removeCustomUser,

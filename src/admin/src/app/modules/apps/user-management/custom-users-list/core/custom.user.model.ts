@@ -1,5 +1,6 @@
 import {CustomResponse, ID, Response} from "../../../../../../_metronic/helpers";
 import {Role} from "../../../role/role-list/core/_role.model.ts";
+import {ChatMessage} from "../../../chat/core/_chat.model.ts";
 
 
 export type CustomUser = {
@@ -14,7 +15,9 @@ export type CustomUser = {
     avatarPath:string,
     password:string,
     reviews?:[],
-    roles?:Role[]
+    roles?:Role[],
+    sentMessages?: Array<ChatMessage>,
+    receivedMessages?: Array<ChatMessage>,
 
 }
 export type UpdateCustomUserDto={
