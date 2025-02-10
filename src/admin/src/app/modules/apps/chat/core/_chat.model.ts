@@ -23,6 +23,7 @@ export interface ChatMessageModel {
     id:number,
     sender:CustomUser,
     receiver:CustomUser,
+    isRead:boolean,
     type: 'in' | 'out'
     text: string
     time: string

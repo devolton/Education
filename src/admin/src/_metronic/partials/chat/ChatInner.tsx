@@ -28,6 +28,7 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
     const [isTypingVisible, setIsTypingVisible] = useState<boolean>(false);
     const [isTyping, setIsTyping] = useState(false);
     let typingTimeout: NodeJS.Timeout | null = null;
+    let isNewMessageBlockVisible = true;
 
 
     const handleTyping = () => {
@@ -67,6 +68,7 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
         let chatMes: ChatMessageModel = {
             id:undefined,
             sender: message.sender,
+            isRead:message.isRead,
             receiver: message.receiver,
             text: message.message,
             type: (currentCustomUser.id !== message.senderId) ? "in" : "out",
@@ -139,8 +141,15 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
                 data-kt-scroll-offset={isDrawer ? '0px' : '5px'}
             >{
                 (messages.length > 0) ? messages.map((message, index) => {
+                    let visibility= false;
+                     if(isNewMessageBlockVisible && !message.isRead && message.type=='in'){
+                         isNewMessageBlockVisible=false;
+                         visibility=true;
+                     }
+
                         return (<MessageBlock
                             key={`message-block-${index}`}
+                            isNewMessagesBlockVisible={visibility}
                             ref={(el) => (messageRefs.current[index] = el)}
                             message={message}
                             isDrawer={isDrawer}/>)
