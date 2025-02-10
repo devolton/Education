@@ -58,6 +58,13 @@ export class UserService {
                     order: [['createdAt', 'DESC']],
                     limit: 1
                 },
+                {
+                    model: ChatMessage,
+                    as: 'sentMessages',
+                    where: {receiverId: senderId},
+                    order: [['createdAt', 'DESC']],
+                    limit: 1
+                },
             ],
 
         });

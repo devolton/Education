@@ -62,8 +62,21 @@ export class ChatService {
     async getLastReceiverMessage(senderId: number, receiverId: number): Promise<ChatMessage> {
         let receiverMessages: Array<ChatMessage> = await this.chatRepository.findAll({
             where: {
-                receiverId: receiverId,
-                senderId: senderId,
+                [Op.or]: [
+                    {
+                        [Op.and]: [
+                            { receiverId: receiverId }, // где receiverId равен переданному значению
+                            { senderId: senderId }        // и senderId равен переданному значению
+                        ]
+                    },
+                    {
+                        [Op.and]: [
+                            { receiverId: senderId },     // или receiverId равен senderId
+                            { senderId: receiverId }        // и senderId равен receiverId
+                        ]
+                    }
+                ]
+
             },
             include: [
                 {
