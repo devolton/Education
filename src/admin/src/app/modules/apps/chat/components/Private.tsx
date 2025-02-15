@@ -1,5 +1,5 @@
 import {FC, useEffect, useMemo, useState} from 'react'
-import {KTIcon} from '../../../../../_metronic/helpers'
+import {ID, KTIcon} from '../../../../../_metronic/helpers'
 import {ChatInner} from '../../../../../_metronic/partials'
 import {ToolbarWrapper} from '../../../../../_metronic/layout/components/toolbar'
 import {Content} from '../../../../../_metronic/layout/components/content'
@@ -8,35 +8,69 @@ import ChatHeader from "../../common/components/chat/ChatHeader.tsx";
 import {useAuth} from "../../../auth";
 import {getCustomUsersWithMessages} from "../../user-management/custom-users-list/core/_userRequests.ts";
 import {CustomUser} from "../../user-management/custom-users-list/core/custom.user.model.ts";
-import {ChatMessageSocketProvider} from "../core/ChatMessageSocketProvider.tsx";
-import {ChatMessagesProvider} from "../core/ChatMessagesProvider.tsx";
+import {ChatMessageSocketProvider, useSocket} from "../core/ChatMessageSocketProvider.tsx";
+import {ChatMessagesProvider, useMessages} from "../core/ChatMessagesProvider.tsx";
+import {ChatTileState, initialChatTileState} from "../core/_chat.model.ts";
+import {isEmptyArray} from "formik";
 
 const Private: FC = () => {
     const {currentCustomUser} = useAuth();
     const [data, setData] = useState<Array<CustomUser>>([]);
+    const {messages} = useMessages();
     const [receiver, setReceiver] = useState<CustomUser>(null);
     const users = useMemo(() => data, [data]);
-    const [search,setSearch] = useState<string>('')
-    useEffect(() => {
-        getCustomUsersWithMessages(currentCustomUser.id,search)
-            .then((data:Array<CustomUser>) => {
+    const [chatTileCollection, setChatTileCollection] = useState<Array<ChatTileState>>([]);
+    const [search, setSearch] = useState<string>('')
 
-                if(data) {
-                    let sortedUsers:Array<CustomUser> =data.sort((first,second)=>{
-                        if(first.receivedMessages.length===0)
+
+
+    const init = () => {
+        getCustomUsersWithMessages(currentCustomUser.id, search)
+            .then((data: Array<CustomUser>) => {
+                if (data) {
+                    let sortedUsers: Array<CustomUser> = data.sort((first, second) => {
+                        if (first.receivedMessages.length === 0)
                             return 1;
-                        if(second.receivedMessages.length===0)
+                        if (second.receivedMessages.length === 0)
                             return -1;
-                        return (first.receivedMessages[0].createdAt>second.receivedMessages[0].createdAt) ? -1:1;
+                        return (first.receivedMessages[0].createdAt > second.receivedMessages[0].createdAt) ? -1 : 1;
                     })
-                    setData(sortedUsers);
                     if (sortedUsers.length > 0)
                         setReceiver(sortedUsers[0]);
+                    let tempChatColl: Array<ChatTileState> = [];
+                    sortedUsers.map((user) => {
+                        let chatState: ChatTileState = {...initialChatTileState, chatUserId: user.id};
+                        if (!isEmptyArray(user.receivedMessages) && !isEmptyArray(user.sentMessages)) {
+                            let isSentMessageLast = user.receivedMessages[0].createdAt > user.sentMessages[0].createdAt;
+                            if (isSentMessageLast) {
+                                if (user.receivedMessages[0].isRead) {
+                                    chatState.isReadMessageIconVisible = true;
+                                } else {
+                                    chatState.isSendMessageIconVisible = true;
+                                }
+                            }
+                        } else if (!isEmptyArray(user.receivedMessages)) {
+                            if (user.receivedMessages[0].isRead) {
+                                chatState.isReadMessageIconVisible = true;
+                            } else {
+                                chatState.isSendMessageIconVisible = true;
+                            }
+                        }
+                        tempChatColl.push(chatState)
+                    })
+                    setChatTileCollection(tempChatColl);
+                    setData(sortedUsers);
+
                 }
             })
             .catch(e => {
                 console.log(e);
             });
+    }
+
+
+    useEffect(() => {
+        init();
     }, [search])
 
     const onClickChatHandler = (user: CustomUser) => {
@@ -60,7 +94,9 @@ const Private: FC = () => {
                                         className='form-control form-control-solid px-15'
                                         name='search'
                                         value={search}
-                                        onChange={(e)=>{setSearch(e.target.value)}}
+                                        onChange={(e) => {
+                                            setSearch(e.target.value)
+                                        }}
                                         placeholder='Search by full name...'
                                     />
                                 </form>
@@ -77,11 +113,12 @@ const Private: FC = () => {
                                     data-kt-scroll-offset='0px'
                                 >
                                     {
-                                       users.length>0 && users.map((oneUser, index) => {
+                                        chatTileCollection.length > 0 && users.length > 0 && users.map((oneUser, index) => {
                                             return oneUser.id !== currentCustomUser.id &&
                                                 <OneUserChat key={`user-chat-${index}`}
-                                                             isActive={oneUser.id===receiver.id}
                                                              user={oneUser}
+                                                             chatTileState={chatTileCollection[index]}
+                                                             isActive={oneUser.id === receiver.id}
                                                              onClickHandler={onClickChatHandler}/>
                                         })
                                     }
@@ -92,8 +129,8 @@ const Private: FC = () => {
 
                     <div className='flex-lg-row-fluid ms-lg-7 ms-xl-10'>
                         <div className='card' id='kt_chat_messenger'>
-                            {receiver !== null && <ChatHeader receiver={receiver}/>}
-                            {receiver !== null && <ChatInner receiver={receiver}/>}
+                            {receiver !== null && receiver !== undefined && <ChatHeader receiver={receiver}/>}
+                            {receiver !== null && receiver !== undefined && <ChatInner receiver={receiver}/>}
                         </div>
                     </div>
                 </div>
@@ -103,7 +140,7 @@ const Private: FC = () => {
 }
 
 
-const PrivateWrapper =()=>{
+const PrivateWrapper = () => {
 
     return (
         <ChatMessageSocketProvider>

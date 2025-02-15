@@ -68,6 +68,25 @@ export class WebsocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
             this.server.to(receiverObj.connection_id).emit('stop-typing', idsPair.senderId);
         }
     }
+    @SubscribeMessage('set-read-message')
+    async readLastMessageHandler(@MessageBody('message_id') messageId:number,
+                                 @MessageBody('sender_id') senderId:number,
+                                 @MessageBody('receiver_id') receiverId:number) {
+        console.log(`MESSAGE WITH ${messageId} WAS READ. SENDER ${senderId} | RECEIVER: ${receiverId}`);
+        let receiverObj = this.clients.find(oneClient => oneClient.user_id === receiverId);
+        let senderObj = this.clients.find(oneClient => oneClient.user_id === senderId);
+        await this.chatService.setChatMessageReadState(messageId);
+        if(receiverObj) {
+            console.log(receiverObj)
+            this.server.to(receiverObj.connection_id).emit("set-read-message", messageId,senderId,receiverId);
+        }
+        // if(senderObj) {
+        //     console.log("SENDER");
+        //     this.server.to(senderObj.connection_id).emit("set-read-message", messageId,senderId,receiverId);
+        // }
+
+
+    }
 
     @SubscribeMessage("message")
     async sendMessageHandler(@MessageBody() createChatMessageDto: CreateChatMessageDto) {
@@ -78,8 +97,10 @@ export class WebsocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
         if (chatMessage) {
             if (receiverObj)
                 this.server.to(receiverObj.connection_id).emit("message", chatMessage);
-            if (senderObj)
+            if (senderObj){
                 this.server.to(senderObj.connection_id).emit("message", chatMessage);
+                this.server.to(senderObj.connection_id).emit("set-sent-message", chatMessage);
+                }
         }
 
     }

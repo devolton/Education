@@ -13,8 +13,8 @@ export class ChatService {
     constructor(@InjectModel(ChatMessage) private readonly chatRepository: typeof ChatMessage) {
     }
 
-    async getMessagesSpecificUserByUserId(senderId: number, receiverId: number, limit: number = 100, offset: number = 0): Promise<Array<ChatMessage>> {
-        return await this.chatRepository.findAll({
+    async getMessagesSpecificUserByUserId(senderId: number, receiverId: number, limit: number = 50, offset: number = 0): Promise<Array<ChatMessage>> {
+        return (await this.chatRepository.findAll({
             where: {
                 [Op.or]: [
                     {senderId, receiverId},
@@ -23,7 +23,7 @@ export class ChatService {
             },
             limit: limit,
             offset: offset,
-            order: [['createdAt', 'ASC']],
+            order: [['createdAt', 'DESC']],
             include: [
                 {
                     model: User,
@@ -34,7 +34,7 @@ export class ChatService {
                     as: 'receiver'
                 }
             ]
-        });
+        })).reverse();
 
 
     }

@@ -1,6 +1,6 @@
 import {FC, useEffect, useLayoutEffect, useRef, useState} from 'react'
 import clsx from 'clsx'
-import {formatTimeAgo, KTIcon,} from '../../helpers'
+import {formatTimeAgo, ID, KTIcon,} from '../../helpers'
 
 import ChatFooter from "../../../app/modules/apps/common/components/chat/ChatFooter.tsx";
 import MessageBlock from "../../../app/modules/apps/common/components/chat/MessageBlock.tsx";
@@ -9,7 +9,7 @@ import {useAuth} from "../../../app/modules/auth";
 import {ChatMessage, ChatMessageModel} from "../../../app/modules/apps/chat/core/_chat.model.ts";
 import {useSocket} from "../../../app/modules/apps/chat/core/ChatMessageSocketProvider.tsx";
 import TypingAnimatedDots from "../../../app/modules/apps/chat/TypingAnimatedDots.tsx";
-import {useMessages} from "../../../app/modules/apps/chat/core/ChatMessagesProvider.tsx";
+import {useMessages, useUnreadMessagesCount} from "../../../app/modules/apps/chat/core/ChatMessagesProvider.tsx";
 import {useMessageObserver} from "../../../app/modules/apps/chat/core/message.observer.ts";
 
 type Props = {
@@ -21,11 +21,11 @@ type Props = {
 const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
     const {socket} = useSocket();
     const {currentCustomUser} = useAuth();
-    const {messages,addMessage,fetchMessages} = useMessages();
+    const {messages, addMessage, fetchMessages} = useMessages();
     const messageRefs = useRef<(HTMLDivElement | null)[]>([]);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    useMessageObserver(messages);
+    useMessageObserver(messages, receiver);
     const [message, setMessage] = useState<string>('')
     const [isTypingVisible, setIsTypingVisible] = useState<boolean>(false);
     const [isTyping, setIsTyping] = useState(false);
@@ -56,7 +56,8 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
             message: message
         }
         socket.emit('message', newMessage);
-        setMessage('')
+        setMessage('');
+
 
     }
 
@@ -67,16 +68,19 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
         }
     }
     const messageHandler = (message: ChatMessage) => {
-        let chatMes: ChatMessageModel = {
-            id:undefined,
-            sender: message.sender,
-            isRead:message.isRead,
-            receiver: message.receiver,
-            text: message.message,
-            type: (currentCustomUser.id !== message.senderId) ? "in" : "out",
-            time: formatTimeAgo(message.createdAt.toLocaleString())
-        };
-       addMessage(chatMes);
+        if (message.senderId === receiver.id || message.senderId===currentCustomUser.id) {
+            let chatMes: ChatMessageModel = {
+                id: message.id,
+                sender: message.sender,
+                isRead: message.isRead,
+                receiver: message.receiver,
+                text: message.message,
+                type: (currentCustomUser.id !== message.senderId) ? "in" : "out",
+                time: formatTimeAgo(message.createdAt.toLocaleString())
+            };
+            addMessage(chatMes);
+        }
+
     }
     const messageInputFocusHandler = () => {
         socket.emit('start-typing', {
@@ -109,21 +113,20 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
             socket.on('start-typing', startTypingMessageHandler);
             socket.on('stop-typing', stopTypingMessageHandler);
         }
-        if(receiver)
-        fetchMessages(receiver.id);
+        if (receiver)
+            fetchMessages(receiver.id);
         return (() => {
             socket.off('message', messageHandler);
             socket.off('start-typing', startTypingMessageHandler);
             socket.off('stop-typing', stopTypingMessageHandler);
         })
 
-    }, [receiver]);
-    useLayoutEffect(()=>{
-
+    }, [receiver]); // not adding messages dependency
+    useLayoutEffect(() => {
         if (containerRef.current) {
             containerRef.current.scrollTop = containerRef.current.scrollHeight;
         }
-    },[messages])
+    }, [messages])
 
     return (
         <div
@@ -150,11 +153,11 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
                 data-kt-scroll-offset={isDrawer ? '0px' : '5px'}
             >{
                 (messages.length > 0) ? messages.map((message, index) => {
-                    let visibility= false;
-                     if(isNewMessageBlockVisible && !message.isRead && message.type=='in'){
-                         isNewMessageBlockVisible=false;
-                         visibility=true;
-                     }
+                        let visibility = false;
+                        if (isNewMessageBlockVisible && !message.isRead && message.type == 'in') {
+                            isNewMessageBlockVisible = false;
+                            visibility = true;
+                        }
 
                         return (<MessageBlock
                             key={`message-block-${index}`}
@@ -190,7 +193,6 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
             }
             onKeyDown={onEnterPress}
         ></textarea>
-
                 <ChatFooter sendMessageHandler={sendMessage}/>
             </div>
         </div>

@@ -28,3 +28,16 @@ export interface ChatMessageModel {
     text: string
     time: string
 }
+
+export type ChatTileState={
+    chatUserId:number,
+    unreadMessageCount:number,
+    isSendMessageIconVisible:boolean,
+    isReadMessageIconVisible:boolean
+}
+export const initialChatTileState:ChatTileState={
+    chatUserId:undefined,
+    unreadMessageCount:0,
+    isReadMessageIconVisible:false,
+    isSendMessageIconVisible:false
+}

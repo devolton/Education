@@ -7,7 +7,7 @@ import {useAuth} from "../../../auth";
 interface ChatMessagesContextProps {
     fetchMessages: (receiverId: ID) => void,
     messages: Array<ChatMessageModel>,
-    addMessage: (message: ChatMessageModel) => void
+    addMessage: (message: ChatMessageModel) => void,
 }
 
 const initialChatMessages: ChatMessagesContextProps = {
@@ -24,6 +24,7 @@ const ChatMessagesProvider: FC<WithChildren> = ({children}) => {
     const [messages, setMessages] = useState<Array<ChatMessageModel>>([]);
 
     const fetchMessages = (receiverId: ID) => {
+        console.log("FETCH MESSAGES");
         if (receiverId) {
             getUserMessages(receiverId).then(data => {
                 let temp: Array<ChatMessageModel> = [];
@@ -43,9 +44,11 @@ const ChatMessagesProvider: FC<WithChildren> = ({children}) => {
         }
 
     }
+
     const addMessage = (message: ChatMessageModel) => {
         setMessages((prev) => [...prev, message]);
     }
+
 
 
     return <ChatMessagesContext.Provider value={{
@@ -62,13 +65,19 @@ const useUnreadMessagesCount = (receiverId: ID) => {
     const [unreadMessagesCount, setUnreadMessagesCount] = useState<number>(0);
 
     const {messages} = useMessages();
-    useEffect(() => {
+    const refreshUnreadMessagesCount=()=>{
         getUnreadReceiverMessagesCount(receiverId)
             .then((data: number) => {
+                console.log(`Unread message: ${data}`)
                 setUnreadMessagesCount(data);
             })
-    }, [messages]);
-    return unreadMessagesCount;
+
+    }
+    useEffect(() => {
+        refreshUnreadMessagesCount();
+
+    }, [messages,receiverId]);
+    return {unreadMessagesCount,refreshUnreadMessagesCount};
 
 
 }
@@ -83,6 +92,13 @@ const useLastMessageTime = (receiverId: ID) => {
             })
     }, [messages]);
     return lastMessageTime;
+}
+const useSendMessageVisible =(receiverId: ID) => {
+    const [isSendMessageVisible, setIsSendMessageVisible] = useState<boolean>(false);
+    const {currentCustomUser} = useAuth();
+    useEffect(() => {
+        setIsSendMessageVisible(currentCustomUser.id===receiverId);
+    })
 }
 
 export {

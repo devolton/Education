@@ -1,9 +1,15 @@
-import { useEffect, useRef } from "react";
+import {useEffect, useRef} from "react";
 import {ChatMessageModel} from "./_chat.model.ts";
-import {setChatMessageReadState} from "./_chat.request.ts";
+import {useSocket} from "./ChatMessageSocketProvider.tsx";
+import {useAuth} from "../../../auth";
+import {CustomUser} from "../../user-management/custom-users-list/core/custom.user.model.ts";
+import {useUnreadMessagesCount} from "./ChatMessagesProvider.tsx";
 
-export const useMessageObserver = (messages:Array<ChatMessageModel>) => {
+export const useMessageObserver = (messages:Array<ChatMessageModel>,receiver:CustomUser) => {
     const observer = useRef<IntersectionObserver | null>(null);
+    const {currentCustomUser} = useAuth();
+    const {refreshUnreadMessagesCount}=useUnreadMessagesCount(receiver?.id);
+    const {socket} = useSocket();
 
     useEffect(() => {
         observer.current = new IntersectionObserver(
@@ -11,10 +17,20 @@ export const useMessageObserver = (messages:Array<ChatMessageModel>) => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
                         const messageId = entry.target.getAttribute("message-id");
-                        const messageType = entry.target.getAttribute("message-type");
-                        console.log(messageId);
-                        if (messageId && messageType === 'in') {
-                            setChatMessageReadState(parseInt(messageId));
+                        if(messageId) {
+                            let mesId = parseInt(messageId);
+                            let messageForUpdate = messages.find(oneMessage => oneMessage.id === mesId);
+
+                            if (messageForUpdate && !messageForUpdate.isRead && messageForUpdate.type === 'in') {
+                                console.log(messageForUpdate);
+                                socket.emit("set-read-message", {
+                                    message_id: mesId,
+                                    sender_id: currentCustomUser.id,
+                                    receiver_id: receiver.id
+                                });
+                                messageForUpdate.isRead = true;
+                                refreshUnreadMessagesCount();
+                            }
                         }
 
                     }

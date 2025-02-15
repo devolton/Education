@@ -3,6 +3,7 @@ import {ID, WithChildren} from "../../../../../_metronic/helpers";
 import {useAuth} from "../../../auth";
 import {connect} from "socket.io-client";
 import Socket = SocketIOClient.Socket;
+import {ChatMessage} from "./_chat.model.ts";
 
 interface SocketContextProps {
     socket: Socket | null;

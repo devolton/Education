@@ -25,7 +25,6 @@ const MessageBlock = forwardRef<HTMLDivElement, Props>(({message,isNewMessagesBl
             }
                 <div
                     ref={ref}
-                    message-type={message.type}
                     message-id={message.id}
                     className={clsx('d-flex', contentClass, 'mb-10')}
                     {...templateAttr}
