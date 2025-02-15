@@ -80,10 +80,9 @@ export class WebsocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
             console.log(receiverObj)
             this.server.to(receiverObj.connection_id).emit("set-read-message", messageId,senderId,receiverId);
         }
-        // if(senderObj) {
-        //     console.log("SENDER");
-        //     this.server.to(senderObj.connection_id).emit("set-read-message", messageId,senderId,receiverId);
-        // }
+        if(senderObj) {
+            this.server.to(senderObj.connection_id).emit("set-read-message", messageId,senderId,receiverId);
+        }
 
 
     }

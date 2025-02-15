@@ -3,7 +3,6 @@ import {toDevoltonAbsoluteUrl} from "../../../../../../_metronic/helpers";
 import {CustomUser} from "../../../user-management/custom-users-list/core/custom.user.model.ts";
 import {useSocket} from "../../../chat/core/ChatMessageSocketProvider.tsx";
 import {useLastMessageTime, useMessages, useUnreadMessagesCount} from "../../../chat/core/ChatMessagesProvider.tsx";
-import {isEmptyArray} from "formik";
 import {ChatMessage, ChatTileState} from "../../../chat/core/_chat.model.ts";
 
 
@@ -13,15 +12,15 @@ type Props = {
     isActive: boolean,
     onClickHandler: (user: CustomUser) => void
 }
-const OneUserChat: FC<Props> = ({user,chatTileState,isActive, onClickHandler}) => {
+const OneUserChat: FC<Props> =React.memo(({user,chatTileState,isActive, onClickHandler}) => {
     const {socket,onlineUserIds} = useSocket();
     const {messages} = useMessages();
-    const {unreadMessagesCount} = useUnreadMessagesCount(user.id);
+    const {unreadMessagesCount,refreshUnreadMessagesCount} = useUnreadMessagesCount(user.id);
     const lastMessageTime = useLastMessageTime(user.id);
     const [isOnline, setIsOnline] = useState<boolean>(false);
     const [isSendMessages,setIsSendMessages] = useState<boolean>(chatTileState.isSendMessageIconVisible);
     const [isReadMessages,setIsReadMessages] = useState<boolean>(chatTileState.isReadMessageIconVisible);
-    const [unreadMessageCount, setUnreadMessageCount] = useState<number>(unreadMessagesCount);
+    const [unreadMessageCount, setUnreadMessageCount] = useState<number>(0);
 
     useEffect(() => {
         if(socket){
@@ -32,6 +31,8 @@ const OneUserChat: FC<Props> = ({user,chatTileState,isActive, onClickHandler}) =
                     setIsReadMessages(chatTileState.isReadMessageIconVisible);
                     setIsSendMessages(chatTileState.isSendMessageIconVisible);
                 }
+
+                refreshUnreadMessagesCount();
             });
             socket.on('set-sent-message',(message:ChatMessage)=>{
                 if(user.id==message.receiverId){
@@ -39,18 +40,18 @@ const OneUserChat: FC<Props> = ({user,chatTileState,isActive, onClickHandler}) =
                     chatTileState.isReadMessageIconVisible=false;
                     setIsReadMessages(chatTileState.isReadMessageIconVisible);
                     setIsSendMessages(chatTileState.isSendMessageIconVisible);
-                    setUnreadMessageCount(unreadMessageCount-1)
+
                 }
 
             })
         }
-        setUnreadMessageCount(unreadMessageCount);
+        setUnreadMessageCount(unreadMessagesCount);
         setIsOnline(onlineUserIds.includes(user.id));
         return (()=>{
             socket.off('set-read-message');
             socket.off('set-sent-message');
         })
-    }, [onlineUserIds,messages]);
+    }, [onlineUserIds,messages,unreadMessagesCount]);
 
 
     return (
@@ -99,6 +100,6 @@ const OneUserChat: FC<Props> = ({user,chatTileState,isActive, onClickHandler}) =
 
         </div>
     );
-};
+});
 
 export default OneUserChat;

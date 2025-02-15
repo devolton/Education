@@ -20,6 +20,7 @@ type Props = {
 
 const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
     const {socket} = useSocket();
+    const {forceRefreshUnreadMessagesCount} = useUnreadMessagesCount(receiver?.id);
     const {currentCustomUser} = useAuth();
     const {messages, addMessage, fetchMessages} = useMessages();
     const messageRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -79,6 +80,9 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
                 time: formatTimeAgo(message.createdAt.toLocaleString())
             };
             addMessage(chatMes);
+        }
+        else{
+           forceRefreshUnreadMessagesCount(message.senderId)
         }
 
     }

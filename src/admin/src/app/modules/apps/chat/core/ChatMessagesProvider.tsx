@@ -68,16 +68,23 @@ const useUnreadMessagesCount = (receiverId: ID) => {
     const refreshUnreadMessagesCount=()=>{
         getUnreadReceiverMessagesCount(receiverId)
             .then((data: number) => {
-                console.log(`Unread message: ${data}`)
+                console.log(`Receiver: ${receiverId} | Unread: ${unreadMessagesCount}`);
                 setUnreadMessagesCount(data);
             })
 
+    }
+    const forceRefreshUnreadMessagesCount=(receiverId:ID)=>{
+        getUnreadReceiverMessagesCount(receiverId)
+            .then((data: number) => {
+                setUnreadMessagesCount(data);
+                console.log(`Receiver: ${receiverId} | Unread: ${unreadMessagesCount}`);
+            })
     }
     useEffect(() => {
         refreshUnreadMessagesCount();
 
     }, [messages,receiverId]);
-    return {unreadMessagesCount,refreshUnreadMessagesCount};
+    return {unreadMessagesCount,refreshUnreadMessagesCount,forceRefreshUnreadMessagesCount};
 
 
 }
@@ -92,13 +99,6 @@ const useLastMessageTime = (receiverId: ID) => {
             })
     }, [messages]);
     return lastMessageTime;
-}
-const useSendMessageVisible =(receiverId: ID) => {
-    const [isSendMessageVisible, setIsSendMessageVisible] = useState<boolean>(false);
-    const {currentCustomUser} = useAuth();
-    useEffect(() => {
-        setIsSendMessageVisible(currentCustomUser.id===receiverId);
-    })
 }
 
 export {
