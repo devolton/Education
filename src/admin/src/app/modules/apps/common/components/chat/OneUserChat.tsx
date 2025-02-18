@@ -12,53 +12,58 @@ type Props = {
     isActive: boolean,
     onClickHandler: (user: CustomUser) => void
 }
-const OneUserChat: FC<Props> =React.memo(({user,chatTileState,isActive, onClickHandler}) => {
-    const {socket,onlineUserIds} = useSocket();
+const OneUserChat: FC<Props> = React.memo(({user, chatTileState, isActive, onClickHandler}) => {
+    const {socket, onlineUserIds} = useSocket();
     const {messages} = useMessages();
-    const {unreadMessagesCount,refreshUnreadMessagesCount} = useUnreadMessagesCount(user.id);
+    const {unreadMessagesCount, refreshUnreadMessagesCount} = useUnreadMessagesCount(user.id);
     const lastMessageTime = useLastMessageTime(user.id);
     const [isOnline, setIsOnline] = useState<boolean>(false);
-    const [isSendMessages,setIsSendMessages] = useState<boolean>(chatTileState.isSendMessageIconVisible);
-    const [isReadMessages,setIsReadMessages] = useState<boolean>(chatTileState.isReadMessageIconVisible);
-    const [unreadMessageCount, setUnreadMessageCount] = useState<number>(0);
+    const [isSendMessages, setIsSendMessages] = useState<boolean>(chatTileState.isSendMessageIconVisible);
+    const [isReadMessages, setIsReadMessages] = useState<boolean>(chatTileState.isReadMessageIconVisible);
 
     useEffect(() => {
-        if(socket){
-            socket.on('set-read-message',(messageId:number,senderId:number,receiverId:number)=>{
-                if(user.id==senderId){
-                    chatTileState.isSendMessageIconVisible=false;
-                    chatTileState.isReadMessageIconVisible=true;
+        if (socket) {
+            socket.on('set-read-message', (messageId: number, senderId: number, receiverId: number) => {
+                if (user.id == senderId) {
+                    chatTileState.isSendMessageIconVisible = false;
+                    chatTileState.isReadMessageIconVisible = true;
                     setIsReadMessages(chatTileState.isReadMessageIconVisible);
                     setIsSendMessages(chatTileState.isSendMessageIconVisible);
+                } else {
+                    setIsReadMessages(false);
+                    setIsSendMessages(false);
+                    refreshUnreadMessagesCount();
                 }
-
-                refreshUnreadMessagesCount();
             });
-            socket.on('set-sent-message',(message:ChatMessage)=>{
-                if(user.id==message.receiverId){
-                    chatTileState.isSendMessageIconVisible=true;
-                    chatTileState.isReadMessageIconVisible=false;
+            socket.on('set-sent-message', (message: ChatMessage) => {
+                if (user.id == message.receiverId) {
+                    chatTileState.isSendMessageIconVisible = true;
+                    chatTileState.isReadMessageIconVisible = false;
                     setIsReadMessages(chatTileState.isReadMessageIconVisible);
                     setIsSendMessages(chatTileState.isSendMessageIconVisible);
 
                 }
 
             })
+            socket.on('set-get-message',(message:ChatMessage)=>{
+                //console.log("SET-GET-MESSAGE");
+                refreshUnreadMessagesCount();
+            })
         }
-        setUnreadMessageCount(unreadMessagesCount);
         setIsOnline(onlineUserIds.includes(user.id));
-        return (()=>{
+        return (() => {
             socket.off('set-read-message');
             socket.off('set-sent-message');
+            socket.off('set-get-message');
         })
-    }, [onlineUserIds,messages,unreadMessagesCount]);
+    }, [onlineUserIds, messages, unreadMessagesCount]);
 
 
     return (
         <div>
             <div onClick={() => {
                 onClickHandler(user)
-            }} className={`p-1 rounded-2 cursor-pointer d-flex flex-stack py-4 ${isActive?'bg-light-primary':''}`}>
+            }} className={`p-1 rounded-2 cursor-pointer d-flex flex-stack py-4 ${isActive ? 'bg-light-primary' : ''}`}>
                 <div className='d-flex align-items-center'>
                     <div className='symbol symbol-45px symbol-circle'>
                         <img alt='Pic' src={toDevoltonAbsoluteUrl(user.avatarPath)}/>
@@ -83,15 +88,15 @@ const OneUserChat: FC<Props> =React.memo(({user,chatTileState,isActive, onClickH
                             className="ki-duotone ki-check fs-4 text-primary-emphasis"></i></span>
                     }
                     {
-                       isSendMessages &&
+                        isSendMessages &&
                         <span className="ki-duotone ki-send"><span className="text-primary path1"></span><span
                             className="path2 text-primary-emphasis"></span></span>
                     }
 
                     {
-                        (unreadMessageCount > 0) &&
+                        (unreadMessagesCount > 0) &&
                         <span
-                            className='badge badge-sm badge-circle badge-light-primary'>{unreadMessageCount}</span>
+                            className='badge badge-sm badge-circle badge-light-primary'>{unreadMessagesCount}</span>
                     }
                 </div>
             </div>

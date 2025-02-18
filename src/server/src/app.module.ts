@@ -7,6 +7,7 @@ import {CourseModule} from './course/course.module';
 import {FilesModule} from './files/files.module';
 import {ServeStaticModule} from "@nestjs/serve-static";
 import * as path from 'path';
+import chalk from 'chalk';
 import {SequelizeModule} from "@nestjs/sequelize";
 import {Option} from "./option/model/option.model";
 import {MediaAssetModule} from './media-asset/media-asset.module';
@@ -69,6 +70,20 @@ import {ChatMessage} from "./websocket/model/chat.message.model";
             username: process.env.DB_USERNAME,
             password: process.env.DB_PASSWORD,
             database: process.env.DB_NAME,
+            logging:(msg:string)=>{
+                if (msg.startsWith("Executing (default): SELECT")) {
+                    console.log(chalk.blueBright(msg));
+                } else if (msg.startsWith("Executing (default): INSERT")) {
+                    console.log(chalk.green(msg));
+                } else if (msg.startsWith("Executing (default): UPDATE")) {
+                    console.log(chalk.yellow(msg));
+                } else if (msg.startsWith("Executing (default): DELETE")) {
+                    console.log(chalk.red(msg));
+                } else {
+                    console.log(chalk.gray(msg)); // Серый для других операций
+                }
+
+            },
             models: [Option,
                 MediaAsset,
                 Navigation,

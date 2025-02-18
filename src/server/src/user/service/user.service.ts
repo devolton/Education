@@ -37,7 +37,7 @@ export class UserService {
     }
 
     async getUsersWithChatMessages(senderId: number, search: string = ''): Promise<User[]> {
-        const searchParts = search.split(" ").map(part => `%${part}%`);
+        const searchParts = search.split(" ").map(part => `${part}%`);
 
         const searchConditions = searchParts.map(part => ({
             [Op.or]: [

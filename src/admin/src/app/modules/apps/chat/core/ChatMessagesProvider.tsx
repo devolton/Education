@@ -68,19 +68,24 @@ const useUnreadMessagesCount = (receiverId: ID) => {
     const refreshUnreadMessagesCount=()=>{
         getUnreadReceiverMessagesCount(receiverId)
             .then((data: number) => {
-                console.log(`Receiver: ${receiverId} | Unread: ${unreadMessagesCount}`);
                 setUnreadMessagesCount(data);
+                //console.log(`Receiver: ${receiverId} | Unread: ${unreadMessagesCount}`);
             })
 
     }
-    const forceRefreshUnreadMessagesCount=(receiverId:ID)=>{
-        getUnreadReceiverMessagesCount(receiverId)
+    const forceRefreshUnreadMessagesCount = (id: ID) => {
+        getUnreadReceiverMessagesCount(id)
             .then((data: number) => {
-                setUnreadMessagesCount(data);
-                console.log(`Receiver: ${receiverId} | Unread: ${unreadMessagesCount}`);
-            })
-    }
+                setUnreadMessagesCount(prevCount => {
+                    //console.log(`Previous count: ${prevCount}, New count: ${data}`);
+                    return data;
+                });
+            });
+
+    };
+
     useEffect(() => {
+        console.log("unread use effect")
         refreshUnreadMessagesCount();
 
     }, [messages,receiverId]);

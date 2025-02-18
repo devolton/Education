@@ -1,5 +1,5 @@
 import {FC, useEffect, useMemo, useState} from 'react'
-import {ID, KTIcon} from '../../../../../_metronic/helpers'
+import {KTIcon} from '../../../../../_metronic/helpers'
 import {ChatInner} from '../../../../../_metronic/partials'
 import {ToolbarWrapper} from '../../../../../_metronic/layout/components/toolbar'
 import {Content} from '../../../../../_metronic/layout/components/content'
@@ -8,15 +8,14 @@ import ChatHeader from "../../common/components/chat/ChatHeader.tsx";
 import {useAuth} from "../../../auth";
 import {getCustomUsersWithMessages} from "../../user-management/custom-users-list/core/_userRequests.ts";
 import {CustomUser} from "../../user-management/custom-users-list/core/custom.user.model.ts";
-import {ChatMessageSocketProvider, useSocket} from "../core/ChatMessageSocketProvider.tsx";
-import {ChatMessagesProvider, useMessages, useUnreadMessagesCount} from "../core/ChatMessagesProvider.tsx";
+import {ChatMessageSocketProvider} from "../core/ChatMessageSocketProvider.tsx";
+import {ChatMessagesProvider, useMessages} from "../core/ChatMessagesProvider.tsx";
 import {ChatTileState, initialChatTileState} from "../core/_chat.model.ts";
 import {isEmptyArray} from "formik";
 
 const Private: FC = () => {
     const {currentCustomUser} = useAuth();
     const [data, setData] = useState<Array<CustomUser>>([]);
-    const {messages} = useMessages();
     const [receiver, setReceiver] = useState<CustomUser>(null);
     const users = useMemo(() => data, [data]);
     const [chatTileCollection, setChatTileCollection] = useState<Array<ChatTileState>>([]);
