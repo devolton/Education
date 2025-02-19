@@ -1,4 +1,4 @@
-import {FC, useEffect, useLayoutEffect, useRef, useState} from 'react'
+import React, {FC, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react'
 import clsx from 'clsx'
 import {formatTimeAgo, KTIcon,} from '../../helpers'
 
@@ -25,8 +25,9 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
     const messageRefs = useRef<(HTMLDivElement | null)[]>([]);
     const containerRef = useRef<HTMLDivElement>(null);
     const scrollValue = useRef<number>(0);
-    let fetchOffset =useRef<number>(0);
-    const fetchLimit =50;
+    let fetchOffset = useRef<number>(0);
+    const [isScrollButtonVisible, setIsScrollButtonVisible] = useState<boolean>(false);
+    const fetchLimit = 50;
     const fetchStep = 50;
 
     useMessageObserver(messages, receiver);
@@ -112,14 +113,23 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
     }
     const handleScroll = () => {
         const container = containerRef.current;
-        if (container.scrollTop === 0 && container.scrollHeight>500) {
-            fetchOffset.current+=fetchStep;
+        if (container.scrollTop < container.scrollHeight-500 ) {
+            setIsScrollButtonVisible(true)
+        }
+        else{
+            setIsScrollButtonVisible(false)
+        }
+
+        if (container.scrollTop === 0 && container.scrollHeight > 500) {
+            fetchOffset.current += fetchStep;
             console.log(`FetchOffset: ${fetchOffset.current}`)//todo console
             fetchMessages(receiver.id, fetchLimit, fetchOffset.current, true);
-            scrollValue.current = containerRef.current.scrollHeight;
+            scrollValue.current = container.scrollHeight;
         }
     };
-
+    const scrollToEndHandler = () => {
+        containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
     useEffect(() => {
         containerRef.current.addEventListener('scroll', handleScroll);
         if (socket) {
@@ -127,7 +137,7 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
             socket.on('start-typing', startTypingMessageHandler);
             socket.on('stop-typing', stopTypingMessageHandler);
         }
-        fetchOffset.current=0;
+        fetchOffset.current = 0;
         console.log("useEffect");
         if (receiver)
             fetchMessages(receiver.id, fetchLimit, 0);
@@ -143,7 +153,7 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
             if (scrollValue.current === 0) {
                 scrollValue.current = containerRef.current.scrollHeight;
             }
-            containerRef.current.scrollTop=containerRef.current.scrollHeight-scrollValue.current;
+            containerRef.current.scrollTop = containerRef.current.scrollHeight - scrollValue.current;
         }
     }, [messages])
 
@@ -170,25 +180,43 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
                         : '#kt_content, #kt_app_content, #kt_chat_messenger_body'
                 }
                 data-kt-scroll-offset={isDrawer ? '0px' : '5px'}
-            >{
-                (messages.length > 0) ? messages.map((message, index) => {
-                        let visibility = false;
-                        if (isNewMessageBlockVisible && !message.isRead && message.type == 'in') {
-                            isNewMessageBlockVisible = false;
-                            visibility = true;
-                        }
+            >
 
-                        return (<MessageBlock
-                            key={`message-block-${index}`}
-                            isNewMessagesBlockVisible={visibility}
-                            ref={(el) => (messageRefs.current[index] = el)}
-                            message={message}
-                            isDrawer={isDrawer}/>)
-                    }) :
-                    <div className='d-flex text-center w-100 align-content-center justify-content-center'>
-                        <KTIcon iconName={'message-add'} iconType={'outline'} className='fs-2'/>
-                    </div>
-            }
+                {
+                    (messages.length > 0) ? messages.map((message, index) => {
+                            let visibility = false;
+                            if (isNewMessageBlockVisible && !message.isRead && message.type == 'in') {
+                                isNewMessageBlockVisible = false;
+                                visibility = true;
+                            }
+
+                            return (<MessageBlock
+                                key={`message-block-${index}`}
+                                isNewMessagesBlockVisible={visibility}
+                                ref={(el) => (messageRefs.current[index] = el)}
+                                message={message}
+                                isDrawer={isDrawer}/>)
+                        }) :
+                        <div className='d-flex text-center w-100 align-content-center justify-content-center'>
+                            <KTIcon iconName={'message-add'} iconType={'outline'} className='fs-2'/>
+                            <div
+                                className="scroll-to-bottom position-absolute bottom-0 end-0 bg-primary text-white p-2 rounded"
+                            >
+                                ↓
+                            </div>
+                        </div>
+
+                }
+                <div
+                    className={`hover-opacity cursor-pointer m-4 position-sticky bg-light-subtle text-white p-2 rounded opacity-75  hover-scale ${isScrollButtonVisible? 'd-block':'d-none'}`}
+                    style={{width:25,
+                        bottom:25
+                    }}
+                    onClick={scrollToEndHandler}
+                >
+                    ↓
+                </div>
+
                 <TypingAnimatedDots isVisible={isTypingVisible}/>
             </div>
             {/*input message block*/}
