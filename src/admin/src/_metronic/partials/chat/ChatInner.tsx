@@ -1,6 +1,6 @@
 import {FC, useEffect, useLayoutEffect, useRef, useState} from 'react'
 import clsx from 'clsx'
-import {formatTimeAgo, ID, KTIcon,} from '../../helpers'
+import {formatTimeAgo, KTIcon,} from '../../helpers'
 
 import ChatFooter from "../../../app/modules/apps/common/components/chat/ChatFooter.tsx";
 import MessageBlock from "../../../app/modules/apps/common/components/chat/MessageBlock.tsx";
@@ -9,7 +9,7 @@ import {useAuth} from "../../../app/modules/auth";
 import {ChatMessage, ChatMessageModel} from "../../../app/modules/apps/chat/core/_chat.model.ts";
 import {useSocket} from "../../../app/modules/apps/chat/core/ChatMessageSocketProvider.tsx";
 import TypingAnimatedDots from "../../../app/modules/apps/chat/TypingAnimatedDots.tsx";
-import {useMessages, useUnreadMessagesCount} from "../../../app/modules/apps/chat/core/ChatMessagesProvider.tsx";
+import {useMessages} from "../../../app/modules/apps/chat/core/ChatMessagesProvider.tsx";
 import {useMessageObserver} from "../../../app/modules/apps/chat/core/message.observer.ts";
 
 type Props = {
@@ -20,13 +20,17 @@ type Props = {
 
 const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
     const {socket} = useSocket();
-    const {forceRefreshUnreadMessagesCount,refreshUnreadMessagesCount} = useUnreadMessagesCount(receiver?.id);
     const {currentCustomUser} = useAuth();
     const {messages, addMessage, fetchMessages} = useMessages();
     const messageRefs = useRef<(HTMLDivElement | null)[]>([]);
     const containerRef = useRef<HTMLDivElement>(null);
+    const scrollValue = useRef<number>(0);
+    let fetchOffset =useRef<number>(0);
+    const fetchLimit =50;
+    const fetchStep = 50;
 
     useMessageObserver(messages, receiver);
+
     const [message, setMessage] = useState<string>('')
     const [isTypingVisible, setIsTypingVisible] = useState<boolean>(false);
     const [isTyping, setIsTyping] = useState(false);
@@ -39,7 +43,6 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
             setIsTyping(true);
             socket.emit("typing", {userId: "your-user-id"});
 
-            // Автоматически отключаем статус "печатает..." через 3 секунды
             if (typingTimeout) clearTimeout(typingTimeout);
             typingTimeout = setTimeout(() => {
                 setIsTyping(false);
@@ -69,7 +72,7 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
         }
     }
     const messageHandler = (message: ChatMessage) => {
-        if (message.senderId === receiver.id || message.senderId===currentCustomUser.id) {
+        if (message.senderId === receiver.id || message.senderId === currentCustomUser.id) {
             let chatMes: ChatMessageModel = {
                 id: message.id,
                 sender: message.sender,
@@ -107,15 +110,27 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
             setIsTypingVisible(false);
         }
     }
+    const handleScroll = () => {
+        const container = containerRef.current;
+        if (container.scrollTop === 0 && container.scrollHeight>500) {
+            fetchOffset.current+=fetchStep;
+            console.log(`FetchOffset: ${fetchOffset.current}`)//todo console
+            fetchMessages(receiver.id, fetchLimit, fetchOffset.current, true);
+            scrollValue.current = containerRef.current.scrollHeight;
+        }
+    };
 
     useEffect(() => {
+        containerRef.current.addEventListener('scroll', handleScroll);
         if (socket) {
             socket.on('message', messageHandler);
             socket.on('start-typing', startTypingMessageHandler);
             socket.on('stop-typing', stopTypingMessageHandler);
         }
+        fetchOffset.current=0;
+        console.log("useEffect");
         if (receiver)
-            fetchMessages(receiver.id);
+            fetchMessages(receiver.id, fetchLimit, 0);
         return (() => {
             socket.off('message', messageHandler);
             socket.off('start-typing', startTypingMessageHandler);
@@ -125,7 +140,10 @@ const ChatInner: FC<Props> = ({receiver, isDrawer = false}) => {
     }, [receiver]); // not adding messages dependency
     useLayoutEffect(() => {
         if (containerRef.current) {
-            containerRef.current.scrollTop = containerRef.current.scrollHeight;
+            if (scrollValue.current === 0) {
+                scrollValue.current = containerRef.current.scrollHeight;
+            }
+            containerRef.current.scrollTop=containerRef.current.scrollHeight-scrollValue.current;
         }
     }, [messages])
 

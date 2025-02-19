@@ -3,8 +3,8 @@ import axios, {AxiosResponse} from "axios";
 import {Config} from "../../../../../env.config.ts";
 import {ChatMessage, UpdateChatMessageDto} from "./_chat.model.ts";
 
-const getUserMessages=(receiverId:ID)=>{
-    return axios.get(Config.PATH.SERVER.CHAT_URL+`/${receiverId}`)
+const getUserMessages=(receiverId:ID,limit:number=100,offset:number=0)=>{
+    return axios.get(Config.PATH.SERVER.CHAT_URL+`/${receiverId}?limit=${limit}&offset=${offset}`)
         .then((response:AxiosResponse<Array<ChatMessage>>) => {
           return response.data;
         });

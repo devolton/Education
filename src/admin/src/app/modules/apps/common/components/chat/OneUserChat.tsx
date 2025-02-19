@@ -46,7 +46,6 @@ const OneUserChat: FC<Props> = React.memo(({user, chatTileState, isActive, onCli
 
             })
             socket.on('set-get-message',(message:ChatMessage)=>{
-                //console.log("SET-GET-MESSAGE");
                 refreshUnreadMessagesCount();
             })
         }

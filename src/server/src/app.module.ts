@@ -74,13 +74,13 @@ import {ChatMessage} from "./websocket/model/chat.message.model";
                 if (msg.startsWith("Executing (default): SELECT")) {
                     console.log(chalk.blueBright(msg));
                 } else if (msg.startsWith("Executing (default): INSERT")) {
-                    console.log(chalk.green(msg));
+                    console.log(chalk.greenBright(msg));
                 } else if (msg.startsWith("Executing (default): UPDATE")) {
                     console.log(chalk.yellow(msg));
                 } else if (msg.startsWith("Executing (default): DELETE")) {
                     console.log(chalk.red(msg));
                 } else {
-                    console.log(chalk.gray(msg)); // Серый для других операций
+                    console.log(chalk.white(msg));
                 }
 
             },

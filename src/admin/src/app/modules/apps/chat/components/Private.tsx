@@ -9,7 +9,7 @@ import {useAuth} from "../../../auth";
 import {getCustomUsersWithMessages} from "../../user-management/custom-users-list/core/_userRequests.ts";
 import {CustomUser} from "../../user-management/custom-users-list/core/custom.user.model.ts";
 import {ChatMessageSocketProvider} from "../core/ChatMessageSocketProvider.tsx";
-import {ChatMessagesProvider, useMessages} from "../core/ChatMessagesProvider.tsx";
+import {ChatMessagesProvider} from "../core/ChatMessagesProvider.tsx";
 import {ChatTileState, initialChatTileState} from "../core/_chat.model.ts";
 import {isEmptyArray} from "formik";
 
