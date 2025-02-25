@@ -23,6 +23,7 @@ const Private: FC = () => {
 
 
     const init = () => {
+
         getCustomUsersWithMessages(currentCustomUser.id, search)
             .then((data: Array<CustomUser>) => {
                 if (data) {

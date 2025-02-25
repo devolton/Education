@@ -7,6 +7,7 @@ import {Config} from "./Config";
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
+    const HOST  = process.env.HOST;
    const PORT= parseInt(process.env.PORT);
 
     app.setGlobalPrefix('/api');
@@ -27,7 +28,7 @@ async function bootstrap() {
     SwaggerModule.setup('/api/docs', app,document);
 
 
-    await app.listen(PORT, () => {
+    await app.listen(PORT,HOST, () => {
         console.log(`========SERVER STARTED IN ${PORT} PORT======`);
     });
 }
