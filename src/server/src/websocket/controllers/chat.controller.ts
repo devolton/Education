@@ -1,11 +1,11 @@
 import {Body, Controller, Delete, Get, Param, Post, Put, Query, Req, UseGuards, UseInterceptors} from "@nestjs/common";
-import {ChatService} from "./chat.service";
-import {AddUserIdInterceptor} from "../interceptors/add.user.id.interceptor";
-import {JwtAuthGuard} from "../token/guard/jwt.auth.guard";
+import {ChatService} from "../services/chat.service";
+import {AddUserIdInterceptor} from "../../interceptors/add.user.id.interceptor";
+import {JwtAuthGuard} from "../../token/guard/jwt.auth.guard";
 import {Request} from "express";
-import {CreateChatMessageDto} from "./dto/create.chat.message.dto";
-import {ChatMessage} from "./model/chat.message.model";
-import {UpdateChatMessageDto} from "./dto/update.chat.message.dto";
+import {CreateChatMessageDto} from "../dto/create.chat.message.dto";
+import {ChatMessage} from "../model/chat.message.model";
+import {UpdateChatMessageDto} from "../dto/update.chat.message.dto";
 
 
 @Controller('chats')

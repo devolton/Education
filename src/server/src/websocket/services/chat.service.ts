@@ -1,11 +1,11 @@
 import {Injectable} from '@nestjs/common';
 import {InjectModel} from "@nestjs/sequelize";
-import {ChatMessage} from "./model/chat.message.model";
-import {CreateChatMessageDto} from "./dto/create.chat.message.dto";
-import {UpdateChatMessageDto} from "./dto/update.chat.message.dto";
-import {NotFoundException} from "../exceptions/not.found.exception";
+import {ChatMessage} from "../model/chat.message.model";
+import {CreateChatMessageDto} from "../dto/create.chat.message.dto";
+import {UpdateChatMessageDto} from "../dto/update.chat.message.dto";
+import {NotFoundException} from "../../exceptions/not.found.exception";
 import {Op} from "sequelize";
-import {User} from "../user/model/user.model";
+import {User} from "../../user/model/user.model";
 import {Sequelize} from "sequelize-typescript";
 
 @Injectable()
