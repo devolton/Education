@@ -18,6 +18,9 @@ let Config = {
             USER: {
                 DEFAULT_AVATAR: '/static/user/avatar/defaultAvatar.png'
             },
+            CAMERA:{
+                DISABLE_CAMERA_ICON:'/static/asset/camera/disable_camera.webp'
+            },
             MEDIA_ASSET: {
                 DEFAULT_MEDIA_ASSET: '/static/asset/poster/defaultPoster.jpg'
             },

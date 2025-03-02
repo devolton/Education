@@ -5,7 +5,7 @@ import {getLastReceiverMessage, getUnreadReceiverMessagesCount, getUserMessages}
 import {useAuth} from "../../../auth";
 
 interface ChatMessagesContextProps {
-    fetchMessages: (receiverId: ID,limit:number,offset:number, isLoading?:boolean) => void,
+    fetchMessages: (receiverId: ID, limit: number, offset: number, isLoading?: boolean) => void,
     messages: Array<ChatMessageModel>,
     addMessage: (message: ChatMessageModel) => void,
 }
@@ -24,10 +24,10 @@ const ChatMessagesProvider: FC<WithChildren> = ({children}) => {
     const [messages, setMessages] = useState<Array<ChatMessageModel>>([]);
 
 
-    const fetchMessages = (receiverId: ID, limit: number=100, offset: number=0, isLoading:boolean=false) => {
+    const fetchMessages = (receiverId: ID, limit: number = 100, offset: number = 0, isLoading: boolean = false) => {
         console.log("FETCH MESSAGES");
         if (receiverId) {
-            getUserMessages(receiverId,limit,offset).then(data => {
+            getUserMessages(receiverId, limit, offset).then(data => {
                 let temp: Array<ChatMessageModel> = [];
                 data.forEach(oneMessage => {
                     temp.push({
@@ -70,11 +70,12 @@ const useUnreadMessagesCount = (receiverId: ID) => {
 
     const {messages} = useMessages();
     const refreshUnreadMessagesCount = () => {
-        getUnreadReceiverMessagesCount(receiverId)
-            .then((data: number) => {
-                setUnreadMessagesCount(data);
-            })
-
+        if (receiverId) {
+            getUnreadReceiverMessagesCount(receiverId)
+                .then((data: number) => {
+                    setUnreadMessagesCount(data);
+                })
+        }
     }
 
     useEffect(() => {

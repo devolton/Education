@@ -72,7 +72,7 @@ import {ChatMessage} from "./websocket/model/chat.message.model";
             database: process.env.DB_NAME,
             logging:(msg:string)=>{
                 if (msg.startsWith("Executing (default): SELECT")) {
-                    console.log(chalk.blueBright());
+                    console.log(chalk.blueBright(msg));
                 } else if (msg.startsWith("Executing (default): INSERT")) {
                     console.log(chalk.greenBright(msg));
                 } else if (msg.startsWith("Executing (default): UPDATE")) {

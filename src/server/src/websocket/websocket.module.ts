@@ -6,9 +6,10 @@ import {ChatMessage} from "./model/chat.message.model";
 import {ChatController} from "./controllers/chat.controller";
 import {JwtModule} from "@nestjs/jwt";
 import {UserModule} from "../user/user.module";
+import {VideoChatGateway} from "./gateways/websocket.video-chat.gateway";
 
 @Module({
-  providers: [WebsocketGateway, ChatService],
+  providers: [WebsocketGateway,VideoChatGateway, ChatService],
   controllers: [ChatController],
   imports:[
       forwardRef(()=>UserModule),

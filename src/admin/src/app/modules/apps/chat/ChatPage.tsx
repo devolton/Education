@@ -2,6 +2,7 @@ import {Navigate, Outlet, Route, Routes} from 'react-router-dom'
 import {PageLink, PageTitle} from '../../../../_metronic/layout/core'
 import {PrivateWrapper} from './components/Private'
 import {useAuth} from "../../auth";
+import VideoChat from "../video-chat/VideoChat.tsx";
 
 const chatBreadCrumbs: Array<PageLink> = [
     {
@@ -50,6 +51,15 @@ const ChatPage = () => {
                         <>
                             <PageTitle breadcrumbs={chatBreadCrumbs}>Private chat</PageTitle>
                             <PrivateWrapper/>
+                        </>
+                    }
+                />
+                <Route
+                    path='private-video-chat'
+                    element={
+                        <>
+                            <PageTitle breadcrumbs={chatBreadCrumbs}>Video chat</PageTitle>
+                            <VideoChat/>
                         </>
                     }
                 />
