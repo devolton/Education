@@ -3,6 +3,7 @@ import {ID, WithChildren} from "../../../../../_metronic/helpers";
 import {useAuth} from "../../../auth";
 import {connect} from "socket.io-client";
 import Socket = SocketIOClient.Socket;
+import {Config} from "../../../../../env.config.ts";
 
 interface SocketContextProps {
     socket: Socket | null;
@@ -22,7 +23,7 @@ const ChatMessageSocketProvider: FC<WithChildren> = ({children}) => {
 
 
     useEffect(() => {
-        const socket: Socket = connect("http://localhost:3001/chat", {
+        const socket: Socket = connect(Config.PATH.SERVER.CHAT_GATEWAY_URL, {
             query: {userId: currentCustomUser.id},
         });
         setSocket(socket);

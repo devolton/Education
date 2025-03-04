@@ -3,6 +3,7 @@ import {PageLink, PageTitle} from '../../../../_metronic/layout/core'
 import {PrivateWrapper} from './components/Private'
 import {useAuth} from "../../auth";
 import VideoChat from "../video-chat/VideoChat.tsx";
+import VideoChatPage from "../video-chat/VideoChatPage.tsx";
 
 const chatBreadCrumbs: Array<PageLink> = [
     {
@@ -59,7 +60,8 @@ const ChatPage = () => {
                     element={
                         <>
                             <PageTitle breadcrumbs={chatBreadCrumbs}>Video chat</PageTitle>
-                            <VideoChat/>
+                            {/*<VideoChat/>*/}
+                            <VideoChatPage/>
                         </>
                     }
                 />

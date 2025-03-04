@@ -13,13 +13,19 @@ let Config = {
             AUTHORS_URL: BASE_URL + '/api/authors',
             MEDIA_ASSETS_URL: BASE_URL + '/api/media-assets',
             CHAT_URL: BASE_URL + '/api/chats',
+            CHAT_GATEWAY_URL: BASE_URL + '/chat',
+            VIDEO_CHAT_GATEWAY_URL: BASE_URL + '/video-chat',
         },
         ASSETS: {
             USER: {
                 DEFAULT_AVATAR: '/static/user/avatar/defaultAvatar.png'
             },
             CAMERA:{
-                DISABLE_CAMERA_ICON:'/static/asset/camera/disable_camera.webp'
+                DISABLE_CAMERA_ICON:'/static/asset/camera/disable_camera.webp',
+                MICROPHONE_ON: '/static/asset/camera/microOn.png',
+                MICROPHONE_OFF: '/static/asset/camera/microOff.png',
+                CAMERA_OFF: '/static/asset/camera/cameraOff.png',
+                CAMERA_ON: '/static/asset/camera/cameraOn.png',
             },
             MEDIA_ASSET: {
                 DEFAULT_MEDIA_ASSET: '/static/asset/poster/defaultPoster.jpg'
