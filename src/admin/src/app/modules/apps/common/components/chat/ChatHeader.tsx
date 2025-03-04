@@ -1,10 +1,12 @@
 import React, {FC, useEffect, useState} from 'react';
 import {CustomUser} from "../../../user-management/custom-users-list/core/custom.user.model.ts";
 import {useSocket} from "../../../chat/core/ChatMessageSocketProvider.tsx";
+import {Phone, VideoCameraFront} from "@mui/icons-material";
+
 type Props = {
-    receiver:CustomUser
+    receiver: CustomUser
 }
-const ChatHeader:FC<Props> = ({receiver}) => {
+const ChatHeader: FC<Props> = ({receiver}) => {
     const [isOnline, setIsOnline] = useState<boolean>(false);
     const {onlineUserIds} = useSocket();
 
@@ -13,11 +15,9 @@ const ChatHeader:FC<Props> = ({receiver}) => {
     }, [receiver]);
 
 
-
     return (
         <div className='card-header' id='kt_chat_messenger_header'>
-            <div className='card-title'>
-                <div className='symbol-group symbol-hover'></div>
+            <div className='card-title w-100  d-flex justify-content-between'>
                 <div className='d-flex justify-content-center flex-column me-3'>
                     <a
                         href='#'
@@ -27,12 +27,20 @@ const ChatHeader:FC<Props> = ({receiver}) => {
                     </a>
 
                     {
-                      isOnline && <div className='mb-0 lh-1'>
+                        isOnline && <div className='mb-0 lh-1'>
                             <span className='badge badge-success badge-circle w-10px h-10px me-1'></span>
                             <span className='fs-7 fw-bold text-gray-500'>Active</span>
                         </div>
                     }
+                </div>{
+                // isOnline &&  //todo open
+                <div>
+                    <VideoCameraFront className={'text-primary-emphasis fs-1 fa-bold me-3 cursor-pointer'}/>
+                    <Phone  className={'text-primary fs-1 fa-bold cursor-pointer'}/>
                 </div>
+            }
+
+
             </div>
 
         </div>

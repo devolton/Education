@@ -1,7 +1,8 @@
-import React, {useRef, useEffect, useState} from 'react';
-import io, {connect} from 'socket.io-client';
+import React, {useEffect, useRef, useState} from 'react';
+import {connect} from 'socket.io-client';
 import {Config} from "../../../../env.config.ts";
 import {useAuth} from "../../auth";
+
 
 // Подключаемся к серверу
 
@@ -24,7 +25,7 @@ const VideoChatPage = () => {
         });
         navigator.mediaDevices.getUserMedia({video: (currentCustomUser.id === 3), audio: (currentCustomUser.id === 55)})
             .then((stream) => {
-                streamRef.current=stream;
+                streamRef.current = stream;
                 localVideoRef.current.srcObject = streamRef.current;
                 // Добавляем локальные потоки в WebRTC
                 streamRef.current.getTracks().forEach(track => peerConnection.current.addTrack(track, streamRef.current));
@@ -100,11 +101,12 @@ const VideoChatPage = () => {
     return (
         <div>
             <h2>WebRTC Video Chat</h2>
-            <video ref={localVideoRef} autoPlay playsInline muted/>
+            <video ref={localVideoRef} autoPlay playsInline/>
             <video ref={remoteVideoRef} autoPlay playsInline/>
             {!isCalling ? <button onClick={callUser}>Call</button> : <p>Calling...</p>}
             <button onClick={stopStream}>Stop</button>
             <button onClick={startVideoStream}>Start</button>
+
         </div>
     );
 };
