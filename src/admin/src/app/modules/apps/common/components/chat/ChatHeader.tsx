@@ -2,13 +2,17 @@ import React, {FC, useEffect, useState} from 'react';
 import {CustomUser} from "../../../user-management/custom-users-list/core/custom.user.model.ts";
 import {useSocket} from "../../../chat/core/ChatMessageSocketProvider.tsx";
 import {Phone, VideoCameraFront} from "@mui/icons-material";
+import VideoChatModal from "../../../chat/components/VideoChatModal.tsx";
 
 type Props = {
     receiver: CustomUser
 }
+
+
 const ChatHeader: FC<Props> = ({receiver}) => {
     const [isOnline, setIsOnline] = useState<boolean>(false);
     const {onlineUserIds} = useSocket();
+    const [isOpened, setIsOpened] = useState<boolean>(false);
 
     useEffect(() => {
         setIsOnline(onlineUserIds.includes(receiver.id));
@@ -17,6 +21,9 @@ const ChatHeader: FC<Props> = ({receiver}) => {
 
     return (
         <div className='card-header' id='kt_chat_messenger_header'>
+            <VideoChatModal isOpened={isOpened}
+                            setIsOpened={setIsOpened}
+                            receiver={receiver}/>
             <div className='card-title w-100  d-flex justify-content-between'>
                 <div className='d-flex justify-content-center flex-column me-3'>
                     <a
@@ -32,13 +39,16 @@ const ChatHeader: FC<Props> = ({receiver}) => {
                             <span className='fs-7 fw-bold text-gray-500'>Active</span>
                         </div>
                     }
-                </div>{
-                // isOnline &&  //todo open
-                <div>
-                    <VideoCameraFront className={'text-primary-emphasis fs-1 fa-bold me-3 cursor-pointer'}/>
-                    <Phone  className={'text-primary fs-1 fa-bold cursor-pointer'}/>
                 </div>
-            }
+                {
+                    // isOnline &&  //todo open
+                    <div>
+                        <VideoCameraFront onClick={() => {setIsOpened(true)}}
+                                          className={'text-primary-emphasis fs-1 fa-bold me-3 cursor-pointer'}/>
+                        <Phone onClick={()=>{setIsOpened(true)}}
+                            className={'text-primary fs-1 fa-bold cursor-pointer'}/>
+                    </div>
+                }
 
 
             </div>

@@ -61,7 +61,7 @@ const ChatPage = () => {
                         <>
                             <PageTitle breadcrumbs={chatBreadCrumbs}>Video chat</PageTitle>
                             {/*<VideoChat/>*/}
-                            <VideoChatPage/>
+                            {/*<VideoChatPage/>*/}
                         </>
                     }
                 />
