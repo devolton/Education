@@ -2,8 +2,6 @@ import {Navigate, Outlet, Route, Routes} from 'react-router-dom'
 import {PageLink, PageTitle} from '../../../../_metronic/layout/core'
 import {PrivateWrapper} from './components/Private'
 import {useAuth} from "../../auth";
-import VideoChat from "../video-chat/VideoChat.tsx";
-import VideoChatPage from "../video-chat/VideoChatPage.tsx";
 
 const chatBreadCrumbs: Array<PageLink> = [
     {

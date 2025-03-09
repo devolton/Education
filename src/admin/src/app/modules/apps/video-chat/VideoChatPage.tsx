@@ -93,8 +93,8 @@ const VideoChatPage = () => {
     // Функция для звонка
     const callUser = async () => {
         console.log("Calling user...");
-        const offer = await peerConnection.current.createOffer();
-        await peerConnection.current.setLocalDescription(offer);
+        const offer = await peerConnection.current?.createOffer();
+        await peerConnection.current?.setLocalDescription(offer);
         socket.emit('call-user', {to: 55, offer});
     };
 

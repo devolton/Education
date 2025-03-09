@@ -10,6 +10,7 @@ type Props = {
 
 
 const ChatHeader: FC<Props> = ({receiver}) => {
+    const [isOpenedWithCamera, setIsOpenedWithCamera] = useState<boolean>(false);
     const [isOnline, setIsOnline] = useState<boolean>(false);
     const {onlineUserIds} = useSocket();
     const [isOpened, setIsOpened] = useState<boolean>(false);
@@ -21,9 +22,14 @@ const ChatHeader: FC<Props> = ({receiver}) => {
 
     return (
         <div className='card-header' id='kt_chat_messenger_header'>
-            <VideoChatModal isOpened={isOpened}
-                            setIsOpened={setIsOpened}
-                            receiver={receiver}/>
+            {
+                isOpened && <VideoChatModal isOpened={isOpened}
+                                            isOpenedWithCamera={isOpenedWithCamera}
+                                            setIsOpened={setIsOpened}
+                                            receiver={receiver}/>
+
+            }
+
             <div className='card-title w-100  d-flex justify-content-between'>
                 <div className='d-flex justify-content-center flex-column me-3'>
                     <a
@@ -43,10 +49,16 @@ const ChatHeader: FC<Props> = ({receiver}) => {
                 {
                     // isOnline &&  //todo open
                     <div>
-                        <VideoCameraFront onClick={() => {setIsOpened(true)}}
+                        <VideoCameraFront onClick={() => {
+                            setIsOpenedWithCamera(true);
+                            setIsOpened(true);
+                        }}
                                           className={'text-primary-emphasis fs-1 fa-bold me-3 cursor-pointer'}/>
-                        <Phone onClick={()=>{setIsOpened(true)}}
-                            className={'text-primary fs-1 fa-bold cursor-pointer'}/>
+                        <Phone onClick={() => {
+                            setIsOpenedWithCamera(false);
+                            setIsOpened(true)
+                        }}
+                               className={'text-primary fs-1 fa-bold cursor-pointer'}/>
                     </div>
                 }
 
