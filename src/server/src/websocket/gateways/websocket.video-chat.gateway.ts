@@ -38,21 +38,22 @@ export class VideoChatGateway implements OnGatewayConnection, OnGatewayDisconnec
 
     async handleDisconnect(client: Socket) {
         console.log("CLIENT DISCONNECTED!");
-        console.log(client);
+        console.log(client.id);
         this.clients = this.clients.filter(oneClient => oneClient.connection_id !== client.id);
-        console.log(this.clients);
     }
 
     // 1. Пользователь отправляет предложение (offer) другому пользователю
     @SubscribeMessage('call-user')
-    async handleCallUser(client: Socket, payload: { clients: ClientsIdPair; offer: RTCSessionDescriptionInit }) {
+    async handleCallUser(@MessageBody()payload: { clients: ClientsIdPair; offer: RTCSessionDescriptionInit }) {
+        console.log(payload.clients);
         console.log(`Calling to ${payload.clients.receiverId}`);
         let receiverObj = this.clients.find(oneClient => oneClient.user_id === payload.clients.receiverId);
         let senderObj = this.clients.find(oneClient => oneClient.user_id === payload.clients.senderId);
         if (receiverObj && senderObj) {
+            console.log("CALLING!");
             let clientsPair: ClientsIdPair = {
                 receiverId: receiverObj.user_id,
-                senderId: receiverObj.user_id
+                senderId: senderObj.user_id
             }
             this.server.to(receiverObj.connection_id).emit('incoming-call', {clientsPair, offer: payload.offer});
         }
@@ -61,12 +62,10 @@ export class VideoChatGateway implements OnGatewayConnection, OnGatewayDisconnec
 
     // 2. Пользователь принимает вызов и отправляет ответ (answer)
     @SubscribeMessage('answer-call')
-    async handleAnswerCall(client: Socket, payload: {
-        clientIdsPair: ClientsIdPair;
-        answer: RTCSessionDescriptionInit
+    async handleAnswerCall( @MessageBody() payload: { clientIds: ClientsIdPair; answer: RTCSessionDescriptionInit
     }) {
-        console.log(`Answering to ${payload.clientIdsPair.receiverId}`);
-        let receiverObj = this.clients.find(oneClient => oneClient.user_id === payload.clientIdsPair.receiverId);
+        console.log(`Answering to ${payload.clientIds.receiverId}`);
+        let receiverObj = this.clients.find(oneClient => oneClient.user_id === payload.clientIds.receiverId);
         if (receiverObj) {
             this.server.to(receiverObj.connection_id).emit('call-answered', {answer: payload.answer});
         }
@@ -74,14 +73,23 @@ export class VideoChatGateway implements OnGatewayConnection, OnGatewayDisconnec
 
     // 3. Передача ICE-кандидатов
     @SubscribeMessage('ice-candidate')
-    async handleIceCandidate(client: Socket, payload: { from: number; to: number; candidate: RTCIceCandidate }) {
+    async handleIceCandidate(@MessageBody() payload: {to: number, fromId:number, candidate: RTCIceCandidate }) {
         console.log(`Ice candidate was ${payload.to}`);
         let receiverObj = this.clients.find(oneClient => oneClient.user_id === payload.to);
         if (receiverObj) {
             this.server.to(receiverObj.connection_id).emit('ice-candidate', {
-                from: client.id,
+                from: payload.fromId,
                 candidate: payload.candidate
             });
+        }
+
+    }
+    @SubscribeMessage('disconnection')
+    async disconnect(@MessageBody() payload: {to: number, from:number}) {
+        let receiverObj = this.clients.find(oneClient => oneClient.user_id === payload.to);
+        let senderObj = this.clients.find(oneClient => oneClient.user_id === payload.from);
+        if(receiverObj  && senderObj) {
+            this.server.to(receiverObj.connection_id).emit('disconnection', {to: payload.to, from:payload.from});
         }
 
     }

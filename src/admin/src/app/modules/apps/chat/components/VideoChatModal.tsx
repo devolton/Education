@@ -11,6 +11,7 @@ import {useAuth} from "../../../auth";
 import Socket = SocketIOClient.Socket;
 import {connect} from "socket.io-client";
 import {Config} from "../../../../../env.config.ts";
+import VideoPlayer from "./VideoPlayer.tsx";
 
 
 type Props = {
@@ -27,74 +28,95 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
     const {currentCustomUser} = useAuth();
 
     const [isCameraOn, setIsCameraOn] = useState<boolean>(isOpenedWithCamera);
-    const [isMicOn, setIsMicOn] = useState<boolean>(false);
+    const [isMicOn, setIsMicOn] = useState<boolean>(currentCustomUser.id === 55); //todo change
     const [isVideo, setIsVideo] = useState<boolean>(isOpenedWithCamera);
+    const [isRemoteVideo, setIsRemoteVideo] = useState<boolean>(false);
 
-    let localVideoStream: MediaStream = null;
+    const [localVideoStream,setLocalVideoStream] = useState<MediaStream | null>(null);
     let localAudioStream: MediaStream = null;
+    const [remoteVideoStream, setRemoteVideoStream] = useState<MediaStream>(null);
+    let remoteAudioStream: MediaStream = null;
 
 
     const localVideoRef = useRef(null);
     const localAudioRef = useRef(null);
+    const remoteAudioRef = useRef(null);
     useEffect(() => {
         console.log("Video chat use effect!!!")
         if (!socketRef.current)
             socketRef.current = connect(Config.PATH.SERVER.VIDEO_CHAT_GATEWAY_URL);
-        if (!peerConnectionRef.current)
-            peerConnectionRef.current = new RTCPeerConnection({
-                    iceServers: [{urls: 'stun:stun.l.google.com:19302'}]
-                }
-            )
+        peerConnectionRef.current = new RTCPeerConnection({
+            iceServers: [{urls: 'stun:stun.l.google.com:19302'}]
+        })
         if (isVideo) {
             navigator.mediaDevices.getUserMedia({video: true})
                 .then((stream) => {
-                    localVideoStream = stream;
-                    stream.getVideoTracks().forEach(track => peerConnectionRef.current.addTrack(track, localVideoStream));
+                    setLocalVideoStream(stream);
+                    stream.getVideoTracks().forEach(track => peerConnectionRef.current.addTrack(track, stream));
                     localVideoRef.current.srcObject = stream;
 
                 });
 
         }
         if (isMicOn) {
-            navigator.mediaDevices.getUserMedia({audio: false})
+            navigator.mediaDevices.getUserMedia({audio: true})
                 .then(stream => {
                     localAudioStream = stream;
-                    stream.getVideoTracks().forEach(track => peerConnectionRef.current.addTrack(track, localAudioStream));
+                    stream.getVideoTracks().forEach(track => peerConnectionRef.current.addTrack(track, stream));
                 })
         }
         peerConnectionRef.current.onicecandidate = (event) => {
             if (event.candidate) {
-                socketRef.current.emit('ice-candidate', {candidate: event.candidate, to: receiver.id});
+                socketRef.current.emit('ice-candidate', {candidate: event.candidate, to: receiver.id,from:currentCustomUser.id});
             }
         }
+
         peerConnectionRef.current.ontrack = (event) => {
+            console.log(event)
             if (event?.track?.kind === "audio") {
                 console.log("Remote audio track");
                 console.log(event.track);
-                localAudioRef.current.srcObject = event.streams[0];
+                remoteAudioStream = event.streams[0];
+                remoteAudioRef.current = remoteAudioStream;
+
             }
             if (event?.track?.kind === 'video') {
                 console.log("Remote video track");
-                console.log(event.track);
-                localVideoRef.current.srcObject = event.streams[0];
+                console.log(event.streams[0].getTracks());
+                setRemoteVideoStream(event.streams[0]);
+                setIsRemoteVideo(true);
             }
         }
-        socketRef.current.on('incoming-call', async ({clientsIdsPair, offer}) => {
+        socketRef.current.on('incoming-call', async ({clientsPair, offer}) => {
             //todo adding modal window to answering the call
             console.log('incoming call');
-            console.log('offer', offer);
+            console.log(`From ${clientsPair.senderId} to ${clientsPair.receiverId}`);
             await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(offer));
             const answer = await peerConnectionRef.current.createAnswer();
             await peerConnectionRef.current.setLocalDescription(answer);
-            socketRef.current.emit('answer-call', {to: clientsIdsPair.senderId, answer});
+            const clientIds = {
+                receiverId: clientsPair.senderId,
+                senderId: clientsPair.receiverId
+            }
+            const payload = {clientIds, answer};
+            socketRef.current.emit('answer-call', payload);
         });
         socketRef.current.on('call-answered', async ({answer}) => {
             console.log('call-answered');
             await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(answer));
-            console.log(answer);
+        });
+        // Обрабатываем ICE-кандидатов
+        socketRef.current.on('ice-candidate', async ({candidate}) => {
+            await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+        });
+        socketRef.current.on('disconnection', ({to,from})=>{
+            console.log('disconnction handler')
+            if(remoteVideoStream){
+                setRemoteVideoStream(null);
+            }
+
         });
 
-        callUser();
         return (() => {
             console.log("VIDEO CHAT DESTRUCTOR!")
             socketRef.current?.off('ice-candidate');
@@ -105,6 +127,8 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
 
         });
     }, []);
+
+
     // Функция для звонка
     const callUser = async () => {
         console.log("Calling user...");
@@ -114,24 +138,29 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
             receiverId: receiver.id,
             senderId: currentCustomUser.id
         };
-        socketRef.current.emit('call-user', {clientsObj, offer});
+        let payload = {
+            clients: clientsObj,
+            offer: offer
+        };
+        socketRef.current.emit('call-user', payload);
     };
     const stopVideoStream = () => {
-        if (!localVideoRef.current) return;
-
         localVideoStream?.getVideoTracks().forEach(track => track.stop());
-        localVideoStream = null;
-        if (localVideoRef.current) localVideoRef.current.srcObject = null;
+        setLocalVideoStream(null);
+        if (localVideoRef.current)
+            localVideoRef.current.srcObject = null;
+        socketRef.current.emit('disconnection',{to:receiver.id,from:currentCustomUser.id});
     };
 
     const start = () => {
         navigator.mediaDevices.getUserMedia({video: true, audio: false})
             .then((stream: MediaStream) => {
-                localVideoStream = stream;
+                setLocalVideoStream(stream);
                 localVideoRef.current.srcObject = stream;
 
             });
     }
+
     const clearStreams = () => {
         setIsCameraOn(false);
         setIsCameraOn(false);
@@ -146,14 +175,15 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
         if (localAudioStream === null) {
             navigator.mediaDevices.getUserMedia({audio: true})
                 .then((stream: MediaStream) => {
-                   localAudioStream=stream;
+                    localAudioStream = stream;
                 })
         } else {
             let audioTrack = localAudioStream?.getAudioTracks()[0];
             if (audioTrack)
                 audioTrack.enabled = true;
         }
-
+        if (currentCustomUser.id === 3)
+            callUser();
     }
 
     const stopMic = () => {
@@ -179,15 +209,15 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
                     }}>
                     <div
                         className={"w-100 h-100 d-flex align-items-center justify-content-center rounded-4 bg-black "}>
-                        {(isVideo) ?
-                            <video ref={localVideoRef}
-                                   autoPlay
-                                   playsInline
-                                   className={'w-100 h-100 object-fit-cover rounded-4 mw-100 mh-100'}/>
-                            :
-                            <img src={toDevoltonAbsoluteUrl(receiver.avatarPath)}
-                                 className={'object-fit-cover mw-50 mh-50 rounded-4'}
-                                 alt={'camera'}/>
+                        {
+                            (isRemoteVideo)
+                                ?
+                                <VideoPlayer  stream={remoteVideoStream}
+                                              classes={'w-100 h-100 object-fit-cover rounded-4 mw-100 mh-100'}/>
+                                :
+                                <img src={toDevoltonAbsoluteUrl(receiver.avatarPath)}
+                                     className={'object-fit-cover mw-50 mh-50 rounded-4'}
+                                     alt={'camera'}/>
                         }
                     </div>
                     <div
