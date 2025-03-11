@@ -4,7 +4,8 @@ import {CreateCustomUserDto, CustomUser, UpdateCustomUserDto} from "./custom.use
 import {IUpdateLogin} from "../../../../accounts/components/settings/SettingsModel.ts";
 import {Config} from "../../../../../../env.config.ts";
 
-const CUSTOM_API_URL = 'http://localhost:3001';
+
+const CUSTOM_API_URL = Config.PATH.SERVER.BASE_URL;
 
 
 const getCustomUsers = (query: string) => {

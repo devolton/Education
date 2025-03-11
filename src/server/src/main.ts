@@ -13,7 +13,7 @@ async function bootstrap() {
     app.setGlobalPrefix('/api');
     app.use(cookieParser());
     app.enableCors({
-        origin:[Config.URL.ADMIN_URL,Config.URL.CLIENT_URL],
+        origin:[Config.URL.ADMIN_URL,Config.URL.CLIENT_URL,Config.URL.REMOTE_ADMIN_URL],
         credentials:true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     })
@@ -29,7 +29,7 @@ async function bootstrap() {
 
 
     await app.listen(PORT,HOST, () => {
-        console.log(`========SERVER STARTED IN ${PORT} PORT======`);
+        console.log(`========SERVER STARTED IN ${HOST} HOST AND ${PORT} PORT======`);
     });
 }
 

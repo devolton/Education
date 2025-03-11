@@ -2,7 +2,8 @@ import * as path from 'path'
  let Config = {
     URL:{
         CLIENT_URL:'http://localhost:3000',
-        ADMIN_URL:'http://localhost:5173'
+        ADMIN_URL:'http://localhost:5173',
+        REMOTE_ADMIN_URL:'http://192.168.0.111:5173'
     },
     PATH: {
         USER: {

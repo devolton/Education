@@ -84,12 +84,12 @@ export class VideoChatGateway implements OnGatewayConnection, OnGatewayDisconnec
         }
 
     }
-    @SubscribeMessage('disconnection')
+    @SubscribeMessage('stop-video')
     async disconnect(@MessageBody() payload: {to: number, from:number}) {
         let receiverObj = this.clients.find(oneClient => oneClient.user_id === payload.to);
         let senderObj = this.clients.find(oneClient => oneClient.user_id === payload.from);
         if(receiverObj  && senderObj) {
-            this.server.to(receiverObj.connection_id).emit('disconnection', {to: payload.to, from:payload.from});
+            this.server.to(receiverObj.connection_id).emit('stop-remote-video', {to: payload.to, from:payload.from});
         }
 
     }

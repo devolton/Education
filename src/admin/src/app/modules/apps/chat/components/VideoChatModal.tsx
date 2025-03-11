@@ -28,18 +28,17 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
     const {currentCustomUser} = useAuth();
 
     const [isCameraOn, setIsCameraOn] = useState<boolean>(isOpenedWithCamera);
-    const [isMicOn, setIsMicOn] = useState<boolean>(currentCustomUser.id === 55); //todo change
+    const [isMicOn, setIsMicOn] = useState<boolean>(true); //todo change
     const [isVideo, setIsVideo] = useState<boolean>(isOpenedWithCamera);
     const [isRemoteVideo, setIsRemoteVideo] = useState<boolean>(false);
 
-    const [localVideoStream,setLocalVideoStream] = useState<MediaStream | null>(null);
-    let localAudioStream: MediaStream = null;
+    const [localVideoStream, setLocalVideoStream] = useState<MediaStream | null>(null);
+    const [localAudioStream, setLocalAudioStream] = useState<MediaStream | null>(null);
     const [remoteVideoStream, setRemoteVideoStream] = useState<MediaStream>(null);
-    let remoteAudioStream: MediaStream = null;
+    const [remoteAudioStream, setRemoteAudioStream] = useState<MediaStream>(null);
 
 
     const localVideoRef = useRef(null);
-    const localAudioRef = useRef(null);
     const remoteAudioRef = useRef(null);
     useEffect(() => {
         console.log("Video chat use effect!!!")
@@ -49,7 +48,7 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
             iceServers: [{urls: 'stun:stun.l.google.com:19302'}]
         })
         if (isVideo) {
-            navigator.mediaDevices.getUserMedia({video: true})
+            navigator.mediaDevices.getUserMedia({video: true,audio:false})
                 .then((stream) => {
                     setLocalVideoStream(stream);
                     stream.getVideoTracks().forEach(track => peerConnectionRef.current.addTrack(track, stream));
@@ -59,15 +58,20 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
 
         }
         if (isMicOn) {
-            navigator.mediaDevices.getUserMedia({audio: true})
+            navigator.mediaDevices.getUserMedia({video:false,audio: true})
                 .then(stream => {
-                    localAudioStream = stream;
-                    stream.getVideoTracks().forEach(track => peerConnectionRef.current.addTrack(track, stream));
+                    setLocalAudioStream(stream);
+                    stream.getAudioTracks().forEach(track => peerConnectionRef.current.addTrack(track, stream));
+
                 })
         }
         peerConnectionRef.current.onicecandidate = (event) => {
             if (event.candidate) {
-                socketRef.current.emit('ice-candidate', {candidate: event.candidate, to: receiver.id,from:currentCustomUser.id});
+                socketRef.current.emit('ice-candidate', {
+                    candidate: event.candidate,
+                    to: receiver.id,
+                    from: currentCustomUser.id
+                });
             }
         }
 
@@ -76,13 +80,12 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
             if (event?.track?.kind === "audio") {
                 console.log("Remote audio track");
                 console.log(event.track);
-                remoteAudioStream = event.streams[0];
-                remoteAudioRef.current = remoteAudioStream;
+                setRemoteAudioStream(event.streams[0])
+                remoteAudioRef.current.srcObject = event.streams[0];
 
             }
             if (event?.track?.kind === 'video') {
                 console.log("Remote video track");
-                console.log(event.streams[0].getTracks());
                 setRemoteVideoStream(event.streams[0]);
                 setIsRemoteVideo(true);
             }
@@ -103,17 +106,17 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
         });
         socketRef.current.on('call-answered', async ({answer}) => {
             console.log('call-answered');
+            console.log(answer);
             await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(answer));
         });
         // Обрабатываем ICE-кандидатов
         socketRef.current.on('ice-candidate', async ({candidate}) => {
             await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
         });
-        socketRef.current.on('disconnection', ({to,from})=>{
-            console.log('disconnction handler')
-            if(remoteVideoStream){
-                setRemoteVideoStream(null);
-            }
+        socketRef.current.on('stop-remote-video', ({to, from}) => {
+            console.log('stop-remote-video handler')
+            setIsRemoteVideo(false);
+            setRemoteVideoStream(null);
 
         });
 
@@ -149,11 +152,11 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
         setLocalVideoStream(null);
         if (localVideoRef.current)
             localVideoRef.current.srcObject = null;
-        socketRef.current.emit('disconnection',{to:receiver.id,from:currentCustomUser.id});
+        socketRef.current.emit('stop-video', {to: receiver.id, from: currentCustomUser.id});
     };
 
     const start = () => {
-        navigator.mediaDevices.getUserMedia({video: true, audio: false})
+        navigator.mediaDevices.getUserMedia({video: true})
             .then((stream: MediaStream) => {
                 setLocalVideoStream(stream);
                 localVideoRef.current.srcObject = stream;
@@ -175,21 +178,30 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
         if (localAudioStream === null) {
             navigator.mediaDevices.getUserMedia({audio: true})
                 .then((stream: MediaStream) => {
-                    localAudioStream = stream;
+                    setLocalAudioStream(stream);
+                    stream.getTracks().forEach(track => peerConnectionRef.current.addTrack(track,stream));
                 })
         } else {
             let audioTrack = localAudioStream?.getAudioTracks()[0];
-            if (audioTrack)
+            if (audioTrack){
                 audioTrack.enabled = true;
+            }
+
         }
-        if (currentCustomUser.id === 3)
+        if (currentCustomUser.id === 3){
             callUser();
+            return;
+        }
+
     }
 
     const stopMic = () => {
         let audioTrack = localAudioStream?.getAudioTracks()[0];
-        if (audioTrack)
+        console.log('audioTrack stopped');
+        if (audioTrack){
             audioTrack.enabled = false;
+        }
+
 
     }
 
@@ -212,8 +224,8 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
                         {
                             (isRemoteVideo)
                                 ?
-                                <VideoPlayer  stream={remoteVideoStream}
-                                              classes={'w-100 h-100 object-fit-cover rounded-4 mw-100 mh-100'}/>
+                                <VideoPlayer stream={remoteVideoStream}
+                                             classes={'w-100 h-100 object-fit-cover rounded-4 mw-100 mh-100'}/>
                                 :
                                 <img src={toDevoltonAbsoluteUrl(receiver.avatarPath)}
                                      className={'object-fit-cover mw-50 mh-50 rounded-4'}
@@ -236,7 +248,7 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
                                      alt={'camera'}/>
 
                         }
-                        <audio ref={localAudioRef} autoPlay></audio>
+                        <audio ref={remoteAudioRef} autoPlay></audio>
                     </div>
 
                     <div
@@ -297,8 +309,7 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
                 </div>
             </Fade>
         </Modal>
-    )
-        ;
+    );
 };
 
 export default VideoChatModal;
