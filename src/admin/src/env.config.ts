@@ -27,6 +27,7 @@ let Config = {
                 MICROPHONE_OFF: '/static/asset/camera/microOff.png',
                 CAMERA_OFF: '/static/asset/camera/cameraOff.png',
                 CAMERA_ON: '/static/asset/camera/cameraOn.png',
+                CALLING_ICON: '/static/asset/camera/calling.webp',
             },
             MEDIA_ASSET: {
                 DEFAULT_MEDIA_ASSET: '/static/asset/poster/defaultPoster.jpg'

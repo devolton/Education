@@ -1,5 +1,6 @@
 import React, {FC, useEffect, useRef, useState} from 'react';
-import {Fade, Modal} from "@mui/material";
+import {Fade, Grow, keyframes, Modal} from "@mui/material";
+import {motion} from "framer-motion";
 import MicIcon from '@mui/icons-material/Mic'
 import MicOffIcon from '@mui/icons-material/MicOff'
 import VideoCamIcon from '@mui/icons-material/VideoCam'
@@ -12,6 +13,18 @@ import Socket = SocketIOClient.Socket;
 import {connect} from "socket.io-client";
 import {Config} from "../../../../../env.config.ts";
 import VideoPlayer from "./VideoPlayer.tsx";
+
+const scaleAnimation = keyframes`
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(0.7);
+    }
+    100% {
+        transform: scale(1);
+    }
+`;
 
 
 type Props = {
@@ -31,6 +44,7 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
     const [isMicOn, setIsMicOn] = useState<boolean>(true); //todo change
     const [isVideo, setIsVideo] = useState<boolean>(isOpenedWithCamera);
     const [isRemoteVideo, setIsRemoteVideo] = useState<boolean>(false);
+    const [isCalling, setIsCalling] = useState<boolean>(false);
 
     const [localVideoStream, setLocalVideoStream] = useState<MediaStream | null>(null);
     const [localAudioStream, setLocalAudioStream] = useState<MediaStream | null>(null);
@@ -48,7 +62,7 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
             iceServers: [{urls: 'stun:stun.l.google.com:19302'}]
         })
         if (isVideo) {
-            navigator.mediaDevices.getUserMedia({video: true,audio:false})
+            navigator.mediaDevices.getUserMedia({video: true, audio: false})
                 .then((stream) => {
                     setLocalVideoStream(stream);
                     stream.getVideoTracks().forEach(track => peerConnectionRef.current.addTrack(track, stream));
@@ -58,7 +72,7 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
 
         }
         if (isMicOn) {
-            navigator.mediaDevices.getUserMedia({video:false,audio: true})
+            navigator.mediaDevices.getUserMedia({video: false, audio: true})
                 .then(stream => {
                     setLocalAudioStream(stream);
                     stream.getAudioTracks().forEach(track => peerConnectionRef.current.addTrack(track, stream));
@@ -106,6 +120,7 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
         });
         socketRef.current.on('call-answered', async ({answer}) => {
             console.log('call-answered');
+            setIsCalling(false);
             console.log(answer);
             await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(answer));
         });
@@ -119,6 +134,7 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
             setRemoteVideoStream(null);
 
         });
+
 
         return (() => {
             console.log("VIDEO CHAT DESTRUCTOR!")
@@ -145,6 +161,7 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
             clients: clientsObj,
             offer: offer
         };
+        setIsCalling(true);
         socketRef.current.emit('call-user', payload);
     };
     const stopVideoStream = () => {
@@ -179,18 +196,17 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
             navigator.mediaDevices.getUserMedia({audio: true})
                 .then((stream: MediaStream) => {
                     setLocalAudioStream(stream);
-                    stream.getTracks().forEach(track => peerConnectionRef.current.addTrack(track,stream));
+                    stream.getTracks().forEach(track => peerConnectionRef.current.addTrack(track, stream));
                 })
         } else {
             let audioTrack = localAudioStream?.getAudioTracks()[0];
-            if (audioTrack){
+            if (audioTrack) {
                 audioTrack.enabled = true;
             }
 
         }
-        if (currentCustomUser.id === 3){
+        if (currentCustomUser.id === 3) {
             callUser();
-            return;
         }
 
     }
@@ -198,7 +214,7 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
     const stopMic = () => {
         let audioTrack = localAudioStream?.getAudioTracks()[0];
         console.log('audioTrack stopped');
-        if (audioTrack){
+        if (audioTrack) {
             audioTrack.enabled = false;
         }
 
@@ -222,14 +238,25 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
                     <div
                         className={"w-100 h-100 d-flex align-items-center justify-content-center rounded-4 bg-black "}>
                         {
-                            (isRemoteVideo)
-                                ?
-                                <VideoPlayer stream={remoteVideoStream}
-                                             classes={'w-100 h-100 object-fit-cover rounded-4 mw-100 mh-100'}/>
+                            (isCalling) ?
+                                <motion.img src={toDevoltonAbsoluteUrl(Config.PATH.ASSETS.CAMERA.CALLING_ICON)}
+                                            animate={{scale: [1, 1.2, 1]}}
+                                            transition={{duration: 1.5, repeat: Infinity, ease: "easeInOut"}}
+                                            className={'object-fit-cover mw-25 mw-25 rounded-4 bg-transparent'}
+                                            alt={'calling'}/>
+
+
                                 :
-                                <img src={toDevoltonAbsoluteUrl(receiver.avatarPath)}
-                                     className={'object-fit-cover mw-50 mh-50 rounded-4'}
-                                     alt={'camera'}/>
+
+                                ((isRemoteVideo)
+                                        ?
+                                        <VideoPlayer stream={remoteVideoStream}
+                                                     classes={'w-100 h-100 object-fit-cover rounded-4 mw-100 mh-100'}/>
+                                        :
+                                        <img src={toDevoltonAbsoluteUrl(receiver.avatarPath)}
+                                             className={'object-fit-cover mw-50 mh-50 rounded-4'}
+                                             alt={'camera'}/>
+                                )
                         }
                     </div>
                     <div
@@ -244,7 +271,7 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
                                        className={'w-100 h-100 object-fit-cover rounded-4 mw-100 mh-100'}/>
                                 :
                                 <img src={toDevoltonAbsoluteUrl(currentCustomUser.avatarPath)}
-                                     className={'object-fit-cover mw-100 mh-100 rounded-4 '}
+                                     className={'object-fit-cover mw-100 mh-100 rounded-4 bg-transparent'}
                                      alt={'camera'}/>
 
                         }
