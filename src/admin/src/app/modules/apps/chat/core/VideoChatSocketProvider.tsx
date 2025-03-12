@@ -26,6 +26,7 @@ const VideoChatSocketProvider:FC<WithChildren> = ({children}) => {
             query:{userId:currentCustomUser.id}
         })
         setSocket(socket);
+        console.log("Video socket use effect! ");
         return(()=>{
             if(socket){
                 socket.disconnect();

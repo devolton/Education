@@ -12,6 +12,7 @@ import {ChatMessageSocketProvider} from "../core/ChatMessageSocketProvider.tsx";
 import {ChatMessagesProvider} from "../core/ChatMessagesProvider.tsx";
 import {ChatTileState, initialChatTileState} from "../core/_chat.model.ts";
 import {isEmptyArray} from "formik";
+import {VideoChatSocketProvider} from "../core/VideoChatSocketProvider.tsx";
 
 const Private: FC = () => {
     const {currentCustomUser} = useAuth();
@@ -143,9 +144,11 @@ const PrivateWrapper = () => {
 
     return (
         <ChatMessageSocketProvider>
-            <ChatMessagesProvider>
-                <Private/>
-            </ChatMessagesProvider>
+            <VideoChatSocketProvider>
+                <ChatMessagesProvider>
+                    <Private/>
+                </ChatMessagesProvider>
+            </VideoChatSocketProvider>
         </ChatMessageSocketProvider>
     )
 }

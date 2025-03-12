@@ -117,9 +117,12 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
             await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
         });
         socketRef.current.on('stop-remote-video', ({to, from}) => {
-            console.log('stop-remote-video handler')
+            console.log('stop-remote-video handler');
+            console.log(remoteVideoStream)
+            remoteVideoStream?.getVideoTracks().forEach(track=>track.stop());
             setIsRemoteVideo(false);
             setRemoteVideoStream(null);
+            console.log(peerConnectionRef.current.getReceivers())
 
         });
 
@@ -161,11 +164,12 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
 
             }
         });
-        localVideoStream?.getVideoTracks().forEach(track => track.stop());
-        setLocalVideoStream(null);
         if (localVideoRef.current)
             localVideoRef.current.srcObject = null;
         socketRef.current.emit('stop-video', {to: receiver.id, from: currentCustomUser.id});
+        localVideoStream?.getVideoTracks().forEach(track => track.stop());
+        setLocalVideoStream(null);
+
     };
 
     const start = () => {
