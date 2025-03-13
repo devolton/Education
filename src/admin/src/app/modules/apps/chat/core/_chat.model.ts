@@ -41,3 +41,18 @@ export const initialChatTileState:ChatTileState={
     isReadMessageIconVisible:false,
     isSendMessageIconVisible:false
 }
+export type ClientIdPair={
+    senderId:ID,
+    receiverId:ID
+}
+export type SimpleSender={
+    id:ID,
+    login:string,
+    avatarPath:string
+}
+export type IncomeCallAnswerStatus = "answered" | "declined" | "missed";
+export type IncomeCallAnswerResponse = {
+    clientsIdPair:ClientIdPair,
+    incomeCallAnswerStatus:IncomeCallAnswerStatus,
+    answer?:RTCSessionDescriptionInit
+}

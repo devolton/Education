@@ -3,6 +3,10 @@ import {CustomUser} from "../../../user-management/custom-users-list/core/custom
 import {useSocket} from "../../../chat/core/ChatMessageSocketProvider.tsx";
 import {Phone, VideoCameraFront} from "@mui/icons-material";
 import VideoChatModal from "../../../chat/components/VideoChatModal.tsx";
+import {useVideoSocket} from "../../../chat/core/VideoChatSocketProvider.tsx";
+import IncomeCallModal from "../../../chat/components/IncomeCallModal.tsx";
+import {useVideoChatPeerConnection} from "../../../chat/core/VideoChatPeerConnectionProvider.tsx";
+import {SimpleSender} from "../../../chat/core/_chat.model.ts";
 
 type Props = {
     receiver: CustomUser
@@ -10,12 +14,26 @@ type Props = {
 
 
 const ChatHeader: FC<Props> = ({receiver}) => {
+    const {socket} = useVideoSocket();
+    const {peerConnection} = useVideoChatPeerConnection();
     const [isOpenedWithCamera, setIsOpenedWithCamera] = useState<boolean>(false);
+    const [offer,setOffer] =useState<RTCSessionDescriptionInit>(null);
+    const [simpleSender,setSimpleSender] = useState<SimpleSender>(null);
+    const [clientsPair,setClientsPair] =useState(null);
     const [isOnline, setIsOnline] = useState<boolean>(false);
     const {onlineUserIds} = useSocket();
     const [isOpened, setIsOpened] = useState<boolean>(false);
+    const [isIncomingModalOpened,setIsIncomingModalOpened] = useState<boolean>(false);
 
     useEffect(() => {
+        socket.on('incoming-call', ({clientsPair,simpleUser, offer}) => {
+            console.log('income-call',offer);
+            setIsIncomingModalOpened(true);
+            setOffer(offer);
+            setSimpleSender(simpleUser);
+            setClientsPair(clientsPair);
+        });
+
         setIsOnline(onlineUserIds.includes(receiver.id));
     }, [receiver]);
 
@@ -28,6 +46,14 @@ const ChatHeader: FC<Props> = ({receiver}) => {
                                             setIsOpened={setIsOpened}
                                             receiver={receiver}/>
 
+            }
+            {
+                isIncomingModalOpened && <IncomeCallModal isOpened={isIncomingModalOpened}
+                                                          setIsOpened={setIsIncomingModalOpened}
+                                                          user={simpleSender}
+                                                          offer={offer}
+                                                          clientsPair={clientsPair}
+                />
             }
 
             <div className='card-title w-100  d-flex justify-content-between'>

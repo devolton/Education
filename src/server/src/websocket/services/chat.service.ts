@@ -6,7 +6,6 @@ import {UpdateChatMessageDto} from "../dto/update.chat.message.dto";
 import {NotFoundException} from "../../exceptions/not.found.exception";
 import {Op} from "sequelize";
 import {User} from "../../user/model/user.model";
-import {Sequelize} from "sequelize-typescript";
 
 @Injectable()
 export class ChatService {

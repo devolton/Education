@@ -9,7 +9,11 @@ import {
 } from "@nestjs/websockets";
 import {Server, Socket} from "socket.io";
 import {ChatClient} from "../model/chat.client.model";
-import {ClientsIdPair} from "../model/clients.id.pair";
+import {ClientsIdPair} from "../type/clients.id.pair";
+import {VideoChatService} from "../services/video.chat.service";
+import {ChatSimpleUser} from "../type/chat.simple.user";
+import {CallAnswerResponse} from "../type/call.answer.response";
+import {HttpException} from "@nestjs/common";
 
 
 @WebSocketGateway({
@@ -17,6 +21,8 @@ import {ClientsIdPair} from "../model/clients.id.pair";
     namespace: '/video-chat'
 })
 export class VideoChatGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
+    constructor(private readonly videoChatService: VideoChatService) {
+    }
 
     @WebSocketServer() server: Server;
     private clients: Array<ChatClient> = [];
@@ -45,29 +51,26 @@ export class VideoChatGateway implements OnGatewayConnection, OnGatewayDisconnec
     // 1. Пользователь отправляет предложение (offer) другому пользователю
     @SubscribeMessage('call-user')
     async handleCallUser(@MessageBody()payload: { clients: ClientsIdPair; offer: RTCSessionDescriptionInit }) {
-        console.log(payload.clients);
-        console.log(`Calling to ${payload.clients.receiverId}`);
         let receiverObj = this.clients.find(oneClient => oneClient.user_id === payload.clients.receiverId);
         let senderObj = this.clients.find(oneClient => oneClient.user_id === payload.clients.senderId);
         if (receiverObj && senderObj) {
-            console.log("CALLING!");
+            let simpleUser:ChatSimpleUser =await this.videoChatService.getUserLoginAndAvatar(senderObj.user_id);
             let clientsPair: ClientsIdPair = {
                 receiverId: receiverObj.user_id,
                 senderId: senderObj.user_id
             }
-            this.server.to(receiverObj.connection_id).emit('incoming-call', {clientsPair, offer: payload.offer});
+            this.server.to(receiverObj.connection_id).emit('incoming-call', {clientsPair, simpleUser, offer: payload.offer});
         }
 
     }
 
     // 2. Пользователь принимает вызов и отправляет ответ (answer)
     @SubscribeMessage('answer-call')
-    async handleAnswerCall( @MessageBody() payload: { clientIds: ClientsIdPair; answer: RTCSessionDescriptionInit
-    }) {
-        console.log(`Answering to ${payload.clientIds.receiverId}`);
-        let receiverObj = this.clients.find(oneClient => oneClient.user_id === payload.clientIds.receiverId);
+    async handleAnswerCall( @MessageBody() payload:CallAnswerResponse ) {
+        console.log(`Answering to ${payload.clientsIdPair.receiverId}`);
+        let receiverObj = this.clients.find(oneClient => oneClient.user_id === payload.clientsIdPair.receiverId);
         if (receiverObj) {
-            this.server.to(receiverObj.connection_id).emit('call-answered', {answer: payload.answer});
+            this.server.to(receiverObj.connection_id).emit('call-answered', payload);
         }
     }
 

@@ -8,7 +8,7 @@ import {Config} from "../../../../../env.config.ts";
 interface VideoChatSocketContextProps{
     socket: Socket;
 }
-const initialVideoChatSocket = {
+const initialVideoChatSocket:VideoChatSocketContextProps = {
     socket: null,
 }
 const VideoChatSocketContext:Context<VideoChatSocketContextProps> = createContext<VideoChatSocketContextProps>(initialVideoChatSocket);
@@ -26,7 +26,6 @@ const VideoChatSocketProvider:FC<WithChildren> = ({children}) => {
             query:{userId:currentCustomUser.id}
         })
         setSocket(socket);
-        console.log("Video socket use effect! ");
         return(()=>{
             if(socket){
                 socket.disconnect();

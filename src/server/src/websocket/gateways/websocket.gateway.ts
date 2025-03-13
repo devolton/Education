@@ -12,7 +12,7 @@ import {Server, Socket} from "socket.io";
 import {CreateChatMessageDto} from "../dto/create.chat.message.dto";
 import {ChatMessage} from "../model/chat.message.model";
 import {ChatClient} from "../model/chat.client.model";
-import {ClientsIdPair} from "../model/clients.id.pair";
+import {ClientsIdPair} from "../type/clients.id.pair";
 
 @WebSocketGateway({
     namespace:'/chat',
