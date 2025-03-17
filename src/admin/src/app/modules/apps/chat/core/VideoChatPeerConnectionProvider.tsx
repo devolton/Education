@@ -39,8 +39,9 @@ const VideoChatPeerConnectionProvider: FC<WithChildren> = ({children}) => {
 
     const sendAnswer = async (offer: RTCSessionDescriptionInit, clientIds: ClientIdPair) => {
         const answerStatus: IncomeCallAnswerStatus = "answered";
+        console.log("OFFER");
+        console.log(offer);
         await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-        console.log("REMOTE DESCRIPTION INIT")
         const answer = await peerConnection.createAnswer();
         await peerConnection.setLocalDescription(answer);
         const payload: IncomeCallAnswerResponse = {

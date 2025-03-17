@@ -97,7 +97,6 @@ const VideoChatModal: FC<Props> = ({isCall, isOpened, isOpenedWithCamera, setIsO
 
 
         });
-        console.log("Init on track");
         peerConnection.ontrack = (event) => {
             console.log(event)
             if (event?.track?.kind === "audio") {
