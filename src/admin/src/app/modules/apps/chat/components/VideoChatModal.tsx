@@ -46,6 +46,7 @@ const VideoChatModal: FC<Props> = ({isCall, isOpened, isOpenedWithCamera, setIsO
     const localVideoRef = useRef(null);
     const remoteAudioRef = useRef(null);
     useEffect(() => {
+        console.log(peerConnection);
         console.log("Video chat use effect!!!")
         if (isVideo) {
             navigator.mediaDevices.getUserMedia({video: true, audio: false})
@@ -90,11 +91,10 @@ const VideoChatModal: FC<Props> = ({isCall, isOpened, isOpenedWithCamera, setIsO
             await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
         });
         socket.on('stop-remote-video', ({to, from}) => {
-            console.log(remoteVideoStream)
             remoteVideoStream?.getVideoTracks().forEach(track => track.stop());
             setIsRemoteVideo(false);
             setRemoteVideoStream(null);
-            console.log(peerConnection.getReceivers())
+
 
         });
         console.log("Init on track");
@@ -138,7 +138,6 @@ const VideoChatModal: FC<Props> = ({isCall, isOpened, isOpenedWithCamera, setIsO
 
     // Функция для звонка
     const callUser = () => {
-        console.log("Calling user...");
         peerConnection.createOffer().then(offer => {
             peerConnection.setLocalDescription(offer).then(() => {
                 let clientsObj = {
@@ -175,6 +174,7 @@ const VideoChatModal: FC<Props> = ({isCall, isOpened, isOpenedWithCamera, setIsO
 
     const start = () => {
         console.log(peerConnection.getSenders());
+        console.log(peerConnection.getReceivers())
         navigator.mediaDevices.getUserMedia({video: true})
             .then((stream: MediaStream) => {
                 setLocalVideoStream(stream);
