@@ -5,8 +5,8 @@ import {Phone, VideoCameraFront} from "@mui/icons-material";
 import VideoChatModal from "../../../chat/components/VideoChatModal.tsx";
 import {useVideoSocket} from "../../../chat/core/VideoChatSocketProvider.tsx";
 import IncomeCallModal from "../../../chat/components/IncomeCallModal.tsx";
-import {useVideoChatPeerConnection} from "../../../chat/core/VideoChatPeerConnectionProvider.tsx";
 import {SimpleSender} from "../../../chat/core/_chat.model.ts";
+import {useVideoChatPeerConnection} from "../../../chat/core/VideoChatPeerConnectionProvider.tsx";
 
 type Props = {
     receiver: CustomUser
@@ -14,20 +14,22 @@ type Props = {
 
 
 const ChatHeader: FC<Props> = ({receiver}) => {
+    const {createPeerConnection} = useVideoChatPeerConnection();
     const {socket} = useVideoSocket();
-    const {peerConnection} = useVideoChatPeerConnection();
     const [isOpenedWithCamera, setIsOpenedWithCamera] = useState<boolean>(false);
-    const [offer,setOffer] =useState<RTCSessionDescriptionInit>(null);
-    const [simpleSender,setSimpleSender] = useState<SimpleSender>(null);
-    const [clientsPair,setClientsPair] =useState(null);
+    const [offer, setOffer] = useState<RTCSessionDescriptionInit>(null);
+    const [simpleSender, setSimpleSender] = useState<SimpleSender>(null);
+    const [clientsPair, setClientsPair] = useState(null);
     const [isOnline, setIsOnline] = useState<boolean>(false);
+    const [isCall, setIsCall] = useState<boolean>(false);
     const {onlineUserIds} = useSocket();
     const [isOpened, setIsOpened] = useState<boolean>(false);
-    const [isIncomingModalOpened,setIsIncomingModalOpened] = useState<boolean>(false);
+    const [isIncomingModalOpened, setIsIncomingModalOpened] = useState<boolean>(false);
 
     useEffect(() => {
-        socket.on('incoming-call', ({clientsPair,simpleUser, offer}) => {
-            console.log('income-call',offer);
+        socket.on('incoming-call', ({clientsPair, simpleUser, offer}) => {
+            console.log('income-call', offer);
+            createPeerConnection();
             setIsIncomingModalOpened(true);
             setOffer(offer);
             setSimpleSender(simpleUser);
@@ -37,21 +39,29 @@ const ChatHeader: FC<Props> = ({receiver}) => {
         setIsOnline(onlineUserIds.includes(receiver.id));
     }, [receiver]);
 
+    const openVideoChat = () => {
+        setIsCall(false);
+        setIsOpened(false);
+        setIsOpened(true);
+    }
+
 
     return (
         <div className='card-header' id='kt_chat_messenger_header'>
             {
                 isOpened && <VideoChatModal isOpened={isOpened}
+                                            isCall={isCall}
                                             isOpenedWithCamera={isOpenedWithCamera}
                                             setIsOpened={setIsOpened}
-                                            receiver={receiver}/>
+                                            receiver={receiver}
+                                            offer={offer}/>
 
             }
             {
                 isIncomingModalOpened && <IncomeCallModal isOpened={isIncomingModalOpened}
                                                           setIsOpened={setIsIncomingModalOpened}
+                                                          openVideoChatHandler={openVideoChat}
                                                           user={simpleSender}
-                                                          offer={offer}
                                                           clientsPair={clientsPair}
                 />
             }
@@ -76,13 +86,17 @@ const ChatHeader: FC<Props> = ({receiver}) => {
                     // isOnline &&  //todo open
                     <div>
                         <VideoCameraFront onClick={() => {
+                            createPeerConnection();
+                            setIsCall(true);
                             setIsOpenedWithCamera(true);
                             setIsOpened(true);
                         }}
                                           className={'text-primary-emphasis fs-1 fa-bold me-3 cursor-pointer'}/>
                         <Phone onClick={() => {
+                            createPeerConnection();
+                            setIsCall(true);
                             setIsOpenedWithCamera(false);
-                            setIsOpened(true)
+                            setIsOpened(true);
                         }}
                                className={'text-primary fs-1 fa-bold cursor-pointer'}/>
                     </div>

@@ -22,10 +22,9 @@ const VideoChatSocketProvider:FC<WithChildren> = ({children}) => {
     const [socket,setSocket] = useState<Socket | null>(null);
 
     useEffect(() => {
-        let socket = connect(Config.PATH.SERVER.VIDEO_CHAT_GATEWAY_URL,{
+        setSocket(connect(Config.PATH.SERVER.VIDEO_CHAT_GATEWAY_URL,{
             query:{userId:currentCustomUser.id}
-        })
-        setSocket(socket);
+        }));
         return(()=>{
             if(socket){
                 socket.disconnect();

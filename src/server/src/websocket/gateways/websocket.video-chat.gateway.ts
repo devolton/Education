@@ -51,6 +51,7 @@ export class VideoChatGateway implements OnGatewayConnection, OnGatewayDisconnec
     // 1. Пользователь отправляет предложение (offer) другому пользователю
     @SubscribeMessage('call-user')
     async handleCallUser(@MessageBody()payload: { clients: ClientsIdPair; offer: RTCSessionDescriptionInit }) {
+        console.log(`Calling to ${payload.clients.receiverId}`);
         let receiverObj = this.clients.find(oneClient => oneClient.user_id === payload.clients.receiverId);
         let senderObj = this.clients.find(oneClient => oneClient.user_id === payload.clients.senderId);
         if (receiverObj && senderObj) {

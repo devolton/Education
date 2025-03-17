@@ -13,32 +13,34 @@ import {Config} from "../../../../../env.config.ts";
 import VideoPlayer from "./VideoPlayer.tsx";
 import {useVideoSocket} from "../core/VideoChatSocketProvider.tsx";
 import {useVideoChatPeerConnection} from "../core/VideoChatPeerConnectionProvider.tsx";
-import {IncomeCallAnswerResponse} from "../core/_chat.model.ts";
+import {ClientIdPair, IncomeCallAnswerResponse} from "../core/_chat.model.ts";
 
 
 type Props = {
+    isCall: boolean,
     isOpened: boolean,
     isOpenedWithCamera: boolean,
     setIsOpened: React.Dispatch<React.SetStateAction<boolean>>,
     receiver: CustomUser
+    offer?: RTCSessionDescriptionInit
 
 }
 
-const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, receiver}) => {
+const VideoChatModal: FC<Props> = ({isCall, isOpened, isOpenedWithCamera, setIsOpened, receiver, offer}) => {
     const {socket} = useVideoSocket();
-    const {peerConnection} = useVideoChatPeerConnection();
+    const {peerConnection, closePeerConnection, sendAnswer} = useVideoChatPeerConnection();
     const {currentCustomUser} = useAuth();
 
     const [isCameraOn, setIsCameraOn] = useState<boolean>(isOpenedWithCamera);
     const [isMicOn, setIsMicOn] = useState<boolean>(true); //todo change
     const [isVideo, setIsVideo] = useState<boolean>(isOpenedWithCamera);
     const [isRemoteVideo, setIsRemoteVideo] = useState<boolean>(false);
-    const [isCalling, setIsCalling] = useState<boolean>(false);
+    const [isCalling, setIsCalling] = useState<boolean>(isCall);
 
-    const [localVideoStream, setLocalVideoStream] = useState<MediaStream | null>(null);
+    const [localVideoStream, setLocalVideoStream] = useState<MediaStream | null>(null); //todo change to ref
     const [localAudioStream, setLocalAudioStream] = useState<MediaStream | null>(null);
-    const [remoteVideoStream, setRemoteVideoStream] = useState<MediaStream>(null);
-    const [remoteAudioStream, setRemoteAudioStream] = useState<MediaStream>(null);
+    const [remoteVideoStream, setRemoteVideoStream] = useState<MediaStream | null>(null);
+    const [remoteAudioStream, setRemoteAudioStream] = useState<MediaStream | null>(null);
 
 
     const localVideoRef = useRef(null);
@@ -61,6 +63,7 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
                     setLocalAudioStream(stream);
                     stream.getAudioTracks().forEach(track => peerConnection.addTrack(track, stream));
                     console.log(peerConnection.getSenders())
+
                 })
         }
         peerConnection.onicecandidate = (event) => {
@@ -73,6 +76,28 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
             }
         }
 
+        socket.on('call-answered', async (payload: IncomeCallAnswerResponse) => {
+            console.log('call-answered');
+            setIsCalling(false);
+            console.log(payload);
+            if (payload.incomeCallAnswerStatus === 'answered') {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(payload.answer));
+            } else
+                setIsOpened(false);
+        });
+        // Обрабатываем ICE-кандидатов
+        socket.on('ice-candidate', async ({candidate}) => {
+            await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        });
+        socket.on('stop-remote-video', ({to, from}) => {
+            console.log(remoteVideoStream)
+            remoteVideoStream?.getVideoTracks().forEach(track => track.stop());
+            setIsRemoteVideo(false);
+            setRemoteVideoStream(null);
+            console.log(peerConnection.getReceivers())
+
+        });
+        console.log("Init on track");
         peerConnection.ontrack = (event) => {
             console.log(event)
             if (event?.track?.kind === "audio") {
@@ -88,53 +113,48 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
                 setIsRemoteVideo(true);
             }
         }
-        socket.on('call-answered', async (payload: IncomeCallAnswerResponse) => {
-            console.log('call-answered');
-            setIsCalling(false);
-            console.log(payload.answer);
-            if (payload.incomeCallAnswerStatus === 'answered')
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(payload.answer));
-            else
-                setIsOpened(false);
-        });
-        // Обрабатываем ICE-кандидатов
-        socket.on('ice-candidate', async ({candidate}) => {
-            await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-        });
-        socket.on('stop-remote-video', ({to, from}) => {
-            console.log('stop-remote-video handler');
-            console.log(remoteVideoStream)
-            remoteVideoStream?.getVideoTracks().forEach(track => track.stop());
-            setIsRemoteVideo(false);
-            setRemoteVideoStream(null);
-            console.log(peerConnection.getReceivers())
+        console.log("✅ Обработчик ontrack назначен");
+        peerConnection.oniceconnectionstatechange = () => {
+            console.log("🔄 ICE Connection State:", peerConnection.iceConnectionState);
+        };
+        if (isCalling) {
+            callUser();
+        } else {
+            let clientPair: ClientIdPair = {
+                receiverId: receiver.id,
+                senderId: currentCustomUser.id
+            };
+            sendAnswer(offer, clientPair)
 
-        });
-
-
+        }
         return (() => {
             console.log("VIDEO CHAT DESTRUCTOR!")
             socket?.off('ice-candidate');
+            clearStreams();
+            closePeerConnection();
 
         });
     }, []);
 
-
     // Функция для звонка
-    const callUser = async () => {
+    const callUser = () => {
         console.log("Calling user...");
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-        let clientsObj = {
-            receiverId: receiver.id,
-            senderId: currentCustomUser.id
-        };
-        let payload = {
-            clients: clientsObj,
-            offer: offer
-        };
-        setIsCalling(true);
-        socket.emit('call-user', payload);
+        peerConnection.createOffer().then(offer => {
+            peerConnection.setLocalDescription(offer).then(() => {
+                let clientsObj = {
+                    receiverId: receiver.id,
+                    senderId: currentCustomUser.id
+                };
+                let payload = {
+                    clients: clientsObj,
+                    offer: offer
+                };
+                setIsCalling(true);
+                socket.emit('call-user', payload);
+            })
+
+        })
+
     };
     const stopVideoStream = () => {
         peerConnection.getSenders().forEach(sender => {
@@ -167,6 +187,8 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
     }
 
     const clearStreams = () => {
+        //todo maybe add function for this emit event
+        socket.emit('stop-video', {to: receiver.id, from: currentCustomUser.id});
         setIsCameraOn(false);
         setIsCameraOn(false);
         localVideoStream?.getTracks().forEach((track) => {
@@ -189,9 +211,6 @@ const VideoChatModal: FC<Props> = ({isOpened, isOpenedWithCamera, setIsOpened, r
                 audioTrack.enabled = true;
             }
 
-        }
-        if (currentCustomUser.id === 3) {
-            callUser();
         }
 
     }

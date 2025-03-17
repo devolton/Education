@@ -11,59 +11,64 @@ import {useVideoSocket} from "../core/VideoChatSocketProvider.tsx";
 type Props = {
     isOpened: boolean;
     setIsOpened: React.Dispatch<React.SetStateAction<boolean>>,
+    openVideoChatHandler: () => void,
     user: SimpleSender,
-    offer?: RTCSessionDescriptionInit,
     clientsPair: ClientIdPair
 }
 
-const IncomeCallModal: FC<Props> = ({isOpened, setIsOpened, user, offer, clientsPair}) => {
-    const {peerConnection} = useVideoChatPeerConnection();
+const IncomeCallModal: FC<Props> = ({isOpened, setIsOpened, openVideoChatHandler, user, clientsPair}) => {
+    const {peerConnection, closePeerConnection} = useVideoChatPeerConnection();
     const {socket} = useVideoSocket();
     useEffect(() => {
-       let timeout =  setTimeout(async () => {
-                await sendAnswer("missed");
 
+        let timeout = setTimeout( () => {
+            sendAnswer("missed");
         }, 10000)
-        return (()=>{
+        return (() => {
             clearTimeout(timeout);
         })
     }, []);
 
 
-    const sendAnswer = async (answerStatus: IncomeCallAnswerStatus) => {
+    const sendAnswer =  (answerStatus: IncomeCallAnswerStatus) => {
 
         let answer: RTCSessionDescriptionInit = null;
         if (answerStatus === "answered") {
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-            answer = await peerConnection.createAnswer();
-            await peerConnection.setLocalDescription(answer);
+            setIsOpened(false);
+            openVideoChatHandler();
+        }
+        else{
+            const clientIds = {
+                receiverId: clientsPair.senderId,
+                senderId: clientsPair.receiverId
+            }
+            const payload: IncomeCallAnswerResponse = {
+                clientsIdPair: clientIds,
+                incomeCallAnswerStatus: answerStatus,
+                answer: answer
+            };
+            setIsOpened(false);
+            socket.emit('answer-call', payload);
+            closePeerConnection();
+
         }
 
-        const clientIds = {
-            receiverId: clientsPair.senderId,
-            senderId: clientsPair.receiverId
-        }
-        const payload: IncomeCallAnswerResponse = {
-            clientsIdPair: clientIds,
-            incomeCallAnswerStatus: answerStatus,
-            answer: answer
-        };
-        socket.emit('answer-call', payload);
-        setIsOpened(false);
-        if (answerStatus === "answered") {
-            //todo open video chat modal
-        }
+
+
     }
 
 
     return (
         <Modal open={isOpened}
-
                onClick={() => {
+                   sendAnswer("declined")
                    setIsOpened(false)
                }}
                onClose={() => {
-               }} className={'d-flex justify-content-center align-items-center shadow-lg'}>
+
+
+               }}
+               className={'d-flex justify-content-center align-items-center shadow-lg'}>
             <Fade in={isOpened}>
                 <motion.div
                     animate={{scale: [1, 1.2, 1]}}
@@ -81,14 +86,14 @@ const IncomeCallModal: FC<Props> = ({isOpened, setIsOpened, user, offer, clients
                     </div>
                     <div className={'w-75 d-flex justify-content-around align-items-center mb-2'}>
                         <PhoneIcon
-                            onClick={async () => {
-                                await sendAnswer("answered")
+                            onClick={ () => {
+                                 sendAnswer("answered")
                             }}
                             style={{width: "40px", height: "40px"}}
                             className={'text-success bg-black shadow-lg  hover-scale cursor-pointer rounded-4 p-2'}/>
                         <CallEnd
-                            onClick={async () => {
-                                await sendAnswer("declined")
+                            onClick={ () => {
+                                 sendAnswer("declined")
                             }}
                             style={{width: "40px", height: "40px"}}
                             className={'text-danger bg-black shadow-lg  hover-scale cursor-pointer rounded-4 p-2'}/>
