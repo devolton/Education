@@ -1,9 +1,9 @@
 import {
-    ConnectedSocket,
     MessageBody,
     OnGatewayConnection,
     OnGatewayDisconnect,
-    OnGatewayInit, SubscribeMessage,
+    OnGatewayInit,
+    SubscribeMessage,
     WebSocketGateway,
     WebSocketServer
 } from "@nestjs/websockets";
@@ -13,7 +13,6 @@ import {ClientsIdPair} from "../type/clients.id.pair";
 import {VideoChatService} from "../services/video.chat.service";
 import {ChatSimpleUser} from "../type/chat.simple.user";
 import {CallAnswerResponse} from "../type/call.answer.response";
-import {HttpException} from "@nestjs/common";
 
 
 @WebSocketGateway({

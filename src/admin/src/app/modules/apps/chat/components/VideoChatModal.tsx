@@ -96,6 +96,7 @@ const VideoChatModal: FC<Props> = ({isCall, isOpened, isOpenedWithCamera, setIsO
             setRemoteVideoStream(null);
 
 
+
         });
         peerConnection.ontrack = (event) => {
             console.log(event)
